@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Free Business Assessment by MOS Logix. Discover if your company needs a website and get projected growth statistics.">
+    <meta property="og:title" content="Free Business Assessment | MOS Logix">
+    <link rel="icon" type="image/png" href="images/Logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="quiz.css">
+    <title>Free Business Assessment | MOS Logix</title>
+</head>
+
+<body>
+    <div class="scroll-progress" id="scrollProgress"></div>
+    <div class="cursor-glow" id="cursorGlow"></div>
+    <div class="animated-bg">
+        <div class="grid-overlay"></div>
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo"><img src="images/Logo.png" alt="MOS Logix"></a>
+            <ul class="nav-links">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="about.html" class="nav-link">About</a></li>
+                <li><a href="contact.html" class="nav-link">Contact</a></li>
+                <li class="nav-cta"><a href="contact.html" class="btn btn-primary">Start Project</a></li>
+            </ul>
+            <div class="mobile-toggle" id="mobileToggle"><span></span><span></span><span></span></div>
+        </div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="services.html" class="nav-link">Services</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="contact.html" class="btn btn-primary">Start Project</a>
+    </div>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="container">
+            <div class="reveal">
+                <span class="section-label">Free Assessment</span>
+                <h1 class="section-title">Does Your Business Need a <span class="gradient-text">Website?</span></h1>
+                <p class="section-subtitle" style="margin: 0 auto;">Answer 7 quick questions. Get a personalized growth
+                    report with real projections.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quiz Section -->
+    <section class="section">
+        <div class="container">
+            <div class="quiz-wrapper reveal">
+
+                <!-- Progress Bar -->
+                <div class="quiz-progress">
+                    <div class="quiz-progress-bar" id="quizProgressBar"></div>
+                    <span class="quiz-progress-text" id="quizProgressText">Question 1 of 7</span>
+                </div>
+
+                <!-- Question Slides -->
+                <div class="quiz-slides" id="quizSlides">
+
+                    <!-- Q1 -->
+                    <div class="quiz-slide active" data-question="1">
+                        <h2 class="quiz-question">What type of business do you run?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="local">
+                                <span class="quiz-option-icon">🏪</span>
+                                <span class="quiz-option-label">Local / Physical Store</span>
+                            </button>
+                            <button class="quiz-option" data-value="online">
+                                <span class="quiz-option-icon">🌐</span>
+                                <span class="quiz-option-label">Online Business</span>
+                            </button>
+                            <button class="quiz-option" data-value="saas">
+                                <span class="quiz-option-icon">💻</span>
+                                <span class="quiz-option-label">SaaS / Tech Startup</span>
+                            </button>
+                            <button class="quiz-option" data-value="freelance">
+                                <span class="quiz-option-icon">🎨</span>
+                                <span class="quiz-option-label">Freelance / Personal Brand</span>
+                            </button>
+                            <button class="quiz-option" data-value="agency">
+                                <span class="quiz-option-icon">🏢</span>
+                                <span class="quiz-option-label">Agency / Service Company</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="quiz-slide" data-question="2">
+                        <h2 class="quiz-question">Do you currently have a website?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="none">
+                                <span class="quiz-option-icon">❌</span>
+                                <span class="quiz-option-label">No website at all</span>
+                            </button>
+                            <button class="quiz-option" data-value="old">
+                                <span class="quiz-option-icon">🕰️</span>
+                                <span class="quiz-option-label">Yes, but it's outdated</span>
+                            </button>
+                            <button class="quiz-option" data-value="template">
+                                <span class="quiz-option-icon">📝</span>
+                                <span class="quiz-option-label">Template / Builder site</span>
+                            </button>
+                            <button class="quiz-option" data-value="decent">
+                                <span class="quiz-option-icon">👍</span>
+                                <span class="quiz-option-label">Yes, it's decent</span>
+                            </button>
+                            <button class="quiz-option" data-value="great">
+                                <span class="quiz-option-icon">🚀</span>
+                                <span class="quiz-option-label">Yes, it's great</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="quiz-slide" data-question="3">
+                        <h2 class="quiz-question">How do customers currently find you?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="wordofmouth">
+                                <span class="quiz-option-icon">🗣️</span>
+                                <span class="quiz-option-label">Word of mouth only</span>
+                            </button>
+                            <button class="quiz-option" data-value="social">
+                                <span class="quiz-option-icon">📱</span>
+                                <span class="quiz-option-label">Social media</span>
+                            </button>
+                            <button class="quiz-option" data-value="google">
+                                <span class="quiz-option-icon">🔍</span>
+                                <span class="quiz-option-label">Google / SEO</span>
+                            </button>
+                            <button class="quiz-option" data-value="ads">
+                                <span class="quiz-option-icon">📢</span>
+                                <span class="quiz-option-label">Paid ads</span>
+                            </button>
+                            <button class="quiz-option" data-value="mixed">
+                                <span class="quiz-option-icon">🔄</span>
+                                <span class="quiz-option-label">Mix of channels</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="quiz-slide" data-question="4">
+                        <h2 class="quiz-question">What's your monthly revenue range?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="pre">
+                                <span class="quiz-option-icon">🌱</span>
+                                <span class="quiz-option-label">Pre-revenue / Just starting</span>
+                            </button>
+                            <button class="quiz-option" data-value="low">
+                                <span class="quiz-option-icon">📈</span>
+                                <span class="quiz-option-label">$500 – $2,000/mo</span>
+                            </button>
+                            <button class="quiz-option" data-value="mid">
+                                <span class="quiz-option-icon">💰</span>
+                                <span class="quiz-option-label">$2,000 – $10,000/mo</span>
+                            </button>
+                            <button class="quiz-option" data-value="high">
+                                <span class="quiz-option-icon">🏆</span>
+                                <span class="quiz-option-label">$10,000 – $50,000/mo</span>
+                            </button>
+                            <button class="quiz-option" data-value="enterprise">
+                                <span class="quiz-option-icon">🚀</span>
+                                <span class="quiz-option-label">$50,000+/mo</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="quiz-slide" data-question="5">
+                        <h2 class="quiz-question">What's your biggest challenge right now?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="leads">
+                                <span class="quiz-option-icon">🎯</span>
+                                <span class="quiz-option-label">Not enough leads / customers</span>
+                            </button>
+                            <button class="quiz-option" data-value="credibility">
+                                <span class="quiz-option-icon">🏅</span>
+                                <span class="quiz-option-label">Looking professional / credible</span>
+                            </button>
+                            <button class="quiz-option" data-value="conversion">
+                                <span class="quiz-option-icon">💸</span>
+                                <span class="quiz-option-label">Visitors don't convert</span>
+                            </button>
+                            <button class="quiz-option" data-value="scale">
+                                <span class="quiz-option-icon">📊</span>
+                                <span class="quiz-option-label">Can't scale operations</span>
+                            </button>
+                            <button class="quiz-option" data-value="speed">
+                                <span class="quiz-option-icon">🐌</span>
+                                <span class="quiz-option-label">Site is too slow / broken</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Q6 -->
+                    <div class="quiz-slide" data-question="6">
+                        <h2 class="quiz-question">What features matter most to you?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="speed">
+                                <span class="quiz-option-icon">⚡</span>
+                                <span class="quiz-option-label">Lightning fast speed</span>
+                            </button>
+                            <button class="quiz-option" data-value="design">
+                                <span class="quiz-option-icon">🎨</span>
+                                <span class="quiz-option-label">Stunning modern design</span>
+                            </button>
+                            <button class="quiz-option" data-value="seo">
+                                <span class="quiz-option-icon">🔍</span>
+                                <span class="quiz-option-label">SEO & Google ranking</span>
+                            </button>
+                            <button class="quiz-option" data-value="ecommerce">
+                                <span class="quiz-option-icon">🛒</span>
+                                <span class="quiz-option-label">Online selling / payments</span>
+                            </button>
+                            <button class="quiz-option" data-value="automation">
+                                <span class="quiz-option-icon">🤖</span>
+                                <span class="quiz-option-label">Automation & integrations</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="quiz-slide" data-question="7">
+                        <h2 class="quiz-question">When do you want to launch?</h2>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-value="asap">
+                                <span class="quiz-option-icon">🔥</span>
+                                <span class="quiz-option-label">ASAP – Yesterday</span>
+                            </button>
+                            <button class="quiz-option" data-value="month">
+                                <span class="quiz-option-icon">📅</span>
+                                <span class="quiz-option-label">Within a month</span>
+                            </button>
+                            <button class="quiz-option" data-value="quarter">
+                                <span class="quiz-option-icon">⏳</span>
+                                <span class="quiz-option-label">Within 3 months</span>
+                            </button>
+                            <button class="quiz-option" data-value="exploring">
+                                <span class="quiz-option-icon">🤔</span>
+                                <span class="quiz-option-label">Just exploring options</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="quiz-nav">
+                    <button class="btn btn-secondary quiz-back" id="quizBack" style="display:none;">← Back</button>
+                </div>
+            </div>
+
+            <!-- Results Section (Hidden until quiz complete) -->
+            <div class="quiz-results" id="quizResults" style="display:none;">
+
+                <!-- Score Overview -->
+                <div class="results-header reveal">
+                    <span class="section-label">Your Results</span>
+                    <h2 class="section-title results-title" id="resultsTitle"></h2>
+                    <p class="section-subtitle results-subtitle" id="resultsSubtitle" style="margin: 0 auto;"></p>
+                </div>
+
+                <!-- Score Ring -->
+                <div class="score-ring-wrapper reveal">
+                    <div class="score-ring">
+                        <svg viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="85" class="score-ring-bg" />
+                            <circle cx="100" cy="100" r="85" class="score-ring-fill" id="scoreRingFill" />
+                        </svg>
+                        <div class="score-ring-value">
+                            <span class="score-number" id="scoreNumber">0</span>
+                            <span class="score-label">Digital Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Before / After Comparison Charts -->
+                <div class="charts-section reveal">
+                    <h3 class="charts-title">Your Projected <span class="gradient-text">Growth</span></h3>
+                    <p class="charts-subtitle">Based on businesses similar to yours that invested in a professional web
+                        presence.</p>
+
+                    <div class="charts-grid">
+                        <!-- Traffic Chart -->
+                        <div class="chart-card glass-card">
+                            <h4 class="chart-label">Monthly Website Visitors</h4>
+                            <div class="bar-chart" id="trafficChart">
+                                <div class="bar-group">
+                                    <div class="bar bar-before" id="trafficBefore"><span></span></div>
+                                    <p class="bar-label">Now</p>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar bar-after" id="trafficAfter"><span></span></div>
+                                    <p class="bar-label">After</p>
+                                </div>
+                            </div>
+                            <p class="chart-delta" id="trafficDelta"></p>
+                        </div>
+
+                        <!-- Revenue Chart -->
+                        <div class="chart-card glass-card">
+                            <h4 class="chart-label">Monthly Revenue Impact</h4>
+                            <div class="bar-chart" id="revenueChart">
+                                <div class="bar-group">
+                                    <div class="bar bar-before" id="revenueBefore"><span></span></div>
+                                    <p class="bar-label">Now</p>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar bar-after" id="revenueAfter"><span></span></div>
+                                    <p class="bar-label">After</p>
+                                </div>
+                            </div>
+                            <p class="chart-delta" id="revenueDelta"></p>
+                        </div>
+
+                        <!-- Conversion Chart -->
+                        <div class="chart-card glass-card">
+                            <h4 class="chart-label">Conversion Rate</h4>
+                            <div class="bar-chart" id="conversionChart">
+                                <div class="bar-group">
+                                    <div class="bar bar-before" id="convBefore"><span></span></div>
+                                    <p class="bar-label">Now</p>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar bar-after" id="convAfter"><span></span></div>
+                                    <p class="bar-label">After</p>
+                                </div>
+                            </div>
+                            <p class="chart-delta" id="convDelta"></p>
+                        </div>
+
+                        <!-- Speed Chart -->
+                        <div class="chart-card glass-card">
+                            <h4 class="chart-label">Page Load Speed</h4>
+                            <div class="bar-chart" id="speedChart">
+                                <div class="bar-group">
+                                    <div class="bar bar-before" id="speedBefore"><span></span></div>
+                                    <p class="bar-label">Now</p>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar bar-after" id="speedAfter"><span></span></div>
+                                    <p class="bar-label">After</p>
+                                </div>
+                            </div>
+                            <p class="chart-delta" id="speedDelta"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="recs-section reveal">
+                    <h3 class="charts-title">Our <span class="gradient-text">Recommendations</span></h3>
+                    <div class="recs-grid" id="recsGrid"></div>
+                </div>
+
+                <!-- 12-Month Growth Timeline -->
+                <div class="growth-timeline reveal">
+                    <h3 class="charts-title">12-Month <span class="gradient-text">Growth Projection</span></h3>
+                    <div class="line-chart-wrapper glass-card">
+                        <canvas id="growthCanvas" width="800" height="300"></canvas>
+                    </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="results-cta reveal">
+                    <div class="cta-box">
+                        <h2 class="cta-title">Ready to Hit These Numbers?</h2>
+                        <p class="cta-text">Let's make it happen. Your personalized strategy is waiting.</p>
+                        <div class="hero-buttons" style="margin-top: 0;">
+                            <a href="contact.html" class="btn btn-primary">Start Your Project</a>
+                            <button class="btn btn-secondary" onclick="resetQuiz()">Retake Assessment</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo"><img src="images/Logo.png" alt="MOS Logix"></div>
+                    <p class="footer-desc">Engineering high-performance digital solutions for modern businesses.</p>
+                </div>
+                <div class="footer-nav">
+                    <h4 class="footer-title">Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html" class="footer-link">Home</a></li>
+                        <li><a href="services.html" class="footer-link">Services</a></li>
+                        <li><a href="about.html" class="footer-link">About</a></li>
+                        <li><a href="contact.html" class="footer-link">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; 2024 MOS Logix. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script src="quiz.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,488 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MOS LOGIX - Business Assessment Quiz Styles
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Quiz Wrapper ──────────────────────────────────────────────────────────── */
+.quiz-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* ─── Progress Bar ──────────────────────────────────────────────────────────── */
+.quiz-progress {
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 20px;
+    height: 8px;
+    position: relative;
+    margin-bottom: var(--spacing-sm);
+    overflow: hidden;
+}
+
+.quiz-progress-bar {
+    height: 100%;
+    width: 14.28%;
+    background: var(--gradient-accent);
+    border-radius: 20px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-glow);
+}
+
+.quiz-progress-text {
+    display: block;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted-gray);
+    margin-bottom: var(--spacing-lg);
+    font-weight: 500;
+}
+
+/* ─── Slides ────────────────────────────────────────────────────────────────── */
+.quiz-slides {
+    position: relative;
+    min-height: 420px;
+}
+
+.quiz-slide {
+    display: none;
+    animation: fadeSlideIn 0.5s ease forwards;
+}
+
+.quiz-slide.active {
+    display: block;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.quiz-question {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    line-height: 1.3;
+}
+
+/* ─── Options ───────────────────────────────────────────────────────────────── */
+.quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.quiz-option {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: rgba(30, 41, 59, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    color: var(--soft-white);
+    font-size: 1.05rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.quiz-option::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-accent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.quiz-option:hover {
+    border-color: var(--accent-teal);
+    transform: translateX(8px);
+    box-shadow: 0 0 20px rgba(20, 255, 236, 0.15);
+}
+
+.quiz-option:hover::before {
+    opacity: 0.05;
+}
+
+.quiz-option.selected {
+    border-color: var(--accent-teal);
+    background: rgba(20, 255, 236, 0.12);
+    box-shadow: var(--shadow-glow);
+}
+
+.quiz-option-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.quiz-option-label {
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── Quiz Navigation ─────────────────────────────────────────────────────── */
+.quiz-nav {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+}
+
+.quiz-back {
+    font-size: 0.95rem;
+    padding: 0.75rem 1.5rem;
+}
+
+/* ─── Results ───────────────────────────────────────────────────────────────── */
+.quiz-results {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.results-title {
+    margin-bottom: var(--spacing-sm) !important;
+}
+
+/* ─── Score Ring ─────────────────────────────────────────────────────────────── */
+.score-ring-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.score-ring {
+    position: relative;
+    width: 220px;
+    height: 220px;
+}
+
+.score-ring svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.score-ring-bg {
+    fill: none;
+    stroke: rgba(30, 41, 59, 0.5);
+    stroke-width: 10;
+}
+
+.score-ring-fill {
+    fill: none;
+    stroke: url(#scoreGradient);
+    stroke-width: 10;
+    stroke-linecap: round;
+    stroke-dasharray: 534;
+    stroke-dashoffset: 534;
+    transition: stroke-dashoffset 2s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 0 8px rgba(20, 255, 236, 0.5));
+}
+
+.score-ring-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.score-number {
+    font-family: var(--font-display);
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: var(--accent-teal);
+    display: block;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(20, 255, 236, 0.4);
+}
+
+.score-label {
+    font-size: 0.85rem;
+    color: var(--muted-gray);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 4px;
+    display: block;
+}
+
+/* ─── Charts Section ────────────────────────────────────────────────────────── */
+.charts-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.charts-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.charts-subtitle {
+    text-align: center;
+    color: var(--muted-gray);
+    margin-bottom: var(--spacing-xl);
+    font-size: 1rem;
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.chart-card {
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.chart-label {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-lg);
+    color: var(--soft-white);
+}
+
+/* ─── Bar Charts ────────────────────────────────────────────────────────────── */
+.bar-chart {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: var(--spacing-lg);
+    height: 180px;
+    padding: 0 var(--spacing-md);
+}
+
+.bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    flex: 1;
+}
+
+.bar {
+    width: 100%;
+    max-width: 70px;
+    border-radius: 8px 8px 4px 4px;
+    position: relative;
+    min-height: 10px;
+    transition: height 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar span {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: var(--soft-white);
+}
+
+.bar-before {
+    background: linear-gradient(to top, rgba(148, 163, 184, 0.3), rgba(148, 163, 184, 0.6));
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.bar-after {
+    background: linear-gradient(to top, rgba(20, 255, 236, 0.3), rgba(20, 255, 236, 0.7));
+    border: 1px solid rgba(20, 255, 236, 0.4);
+    box-shadow: 0 0 20px rgba(20, 255, 236, 0.2);
+}
+
+.bar-label {
+    font-size: 0.8rem;
+    color: var(--muted-gray);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.chart-delta {
+    margin-top: var(--spacing-md);
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent-teal);
+    text-shadow: 0 0 10px rgba(20, 255, 236, 0.3);
+}
+
+/* ─── Recommendations ───────────────────────────────────────────────────────── */
+.recs-section {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.recs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.rec-card {
+    padding: var(--spacing-lg);
+    position: relative;
+}
+
+.rec-priority {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: var(--spacing-md);
+}
+
+.rec-priority.high {
+    background: rgba(255, 71, 87, 0.15);
+    color: #FF6B6B;
+    border: 1px solid rgba(255, 71, 87, 0.3);
+}
+
+.rec-priority.medium {
+    background: rgba(255, 193, 7, 0.15);
+    color: #FFD93D;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.rec-priority.low {
+    background: rgba(20, 255, 236, 0.15);
+    color: var(--accent-teal);
+    border: 1px solid rgba(20, 255, 236, 0.3);
+}
+
+.rec-title {
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: var(--spacing-sm);
+}
+
+.rec-text {
+    color: var(--muted-gray);
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: var(--spacing-md);
+}
+
+.rec-service {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(20, 255, 236, 0.08);
+    border: 1px solid rgba(20, 255, 236, 0.2);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--accent-teal);
+    font-weight: 600;
+}
+
+/* ─── Growth Timeline Canvas ────────────────────────────────────────────────── */
+.growth-timeline {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.line-chart-wrapper {
+    padding: var(--spacing-lg);
+    overflow: hidden;
+}
+
+.line-chart-wrapper canvas {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 300px;
+}
+
+/* ─── Results CTA ───────────────────────────────────────────────────────────── */
+.results-cta {
+    text-align: center;
+}
+
+/* ─── Score Colors ──────────────────────────────────────────────────────────── */
+.score-critical {
+    color: #FF6B6B;
+}
+
+.score-low {
+    color: #FFD93D;
+}
+
+.score-medium {
+    color: #00D9FF;
+}
+
+.score-good {
+    color: #14FFEC;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .quiz-slides {
+        min-height: 500px;
+    }
+
+    .quiz-option {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.95rem;
+    }
+
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bar-chart {
+        height: 150px;
+    }
+
+    .score-ring {
+        width: 180px;
+        height: 180px;
+    }
+
+    .score-number {
+        font-size: 2.5rem;
+    }
+
+    .recs-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .quiz-question {
+        font-size: 1.15rem;
+    }
+
+    .quiz-option-icon {
+        font-size: 1.25rem;
+    }
+}
