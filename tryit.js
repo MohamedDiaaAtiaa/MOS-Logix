@@ -103,6 +103,86 @@
 
         // Init Game (but don't start)
         SnakeGame.init();
+
+        // Setup ZIP Upload
+        setupZipUpload();
+    }
+
+    // ─── ZIP Upload & Tab Logic ──────────────────────────────────────────────────
+    function setupZipUpload() {
+        const tabs = document.querySelectorAll('.input-tab');
+        const dropZone = document.getElementById('zipDropZone');
+        const zipInput = document.getElementById('zipInput');
+        const removeBtn = document.getElementById('removeFile');
+        const fileInfo = document.getElementById('fileInfo');
+
+        if (!tabs.length) return;
+
+        // Tab Switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.target;
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                document.getElementById('pasteMethod').style.display = target === 'paste' ? 'block' : 'none';
+                document.getElementById('uploadMethod').style.display = target === 'upload' ? 'block' : 'none';
+            });
+        });
+
+        // Drop Zone Interaction
+        if (dropZone && zipInput) {
+            dropZone.addEventListener('click', () => zipInput.click());
+
+            zipInput.addEventListener('change', (e) => {
+                if (e.target.files.length) handleZipFile(e.target.files[0]);
+            });
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            ['dragleave', 'drop'].forEach(evt => {
+                dropZone.addEventListener(evt, () => dropZone.classList.remove('dragover'));
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files.length) handleZipFile(e.dataTransfer.files[0]);
+            });
+        }
+
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                if (zipInput) zipInput.value = '';
+                if (fileInfo) fileInfo.style.display = 'none';
+                if (dropZone) dropZone.style.display = 'block';
+                formData.code = '';
+            });
+        }
+    }
+
+    function handleZipFile(file) {
+        if (!file.name.endsWith('.zip')) {
+            alert('Please upload a .zip file.');
+            return;
+        }
+
+        const dropZone = document.getElementById('zipDropZone');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+
+        if (fileName) fileName.textContent = file.name;
+        if (fileSize) fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+        if (dropZone) dropZone.style.display = 'none';
+        if (fileInfo) fileInfo.style.display = 'block';
+
+        // Simulation: "Pre-reading" the code
+        // In a real app, we'd use JSZip here. For this demo, we set a placeholder.
+        formData.code = `[SIMULATED ZIP CONTENT FROM: ${file.name}]\n\n/* The user has uploaded a ZIP folder. AI will now decompile and improve the entire project structure. */`;
     }
 
     function updateServiceUI(service) {
@@ -335,13 +415,14 @@
         interval: null,
         steps: [
             "Initializing Neural Network...",
-            "Analyze Request Parameters...",
-            "Constructing HTML Backbone...",
-            "Generating CSS Grid Layout...",
-            "Applying Theme Variables...",
-            "Injecting Interaction Logic...",
-            "Optimizing Responsive Views...",
-            "Minifying Assets...",
+            "Analyze Project Structure...",
+            "Decompiling Uploaded Assets...",
+            "Constructing Enhanced HTML Backbone...",
+            "Generating Optimised CSS Grid...",
+            "Applying AI-Driven Theme Variables...",
+            "Injecting Modern Interaction Logic...",
+            "Optimizing Responsive Viewports...",
+            "Minifying & Bundling Assets...",
             "Final Polish & Rendering..."
         ],
         init() {

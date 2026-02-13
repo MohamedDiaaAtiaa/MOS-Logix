@@ -26,11 +26,74 @@ document.addEventListener('DOMContentLoaded', () => {
   initPricingTiers();
 
   // Section Specific
-  initTestimonials();
   initTextScramble();
   initBookingSlots();
   initContactForm();
+  initFloatingNudge();
+  initPageTransitions();
+  initDynamicBackground();
+  initStatCounters();
+  initSystemLog();
 });
+
+/**
+ * System Activity Log: Periodically adds "activity" lines to the log container
+ */
+function initSystemLog() {
+  const container = document.getElementById('logContent');
+  if (!container) return;
+
+  const activities = [
+    'Optimizing digital assets...',
+    'Checking UX friction points...',
+    'Analyzing conversion funnel...',
+    'Syncing with digital core...',
+    'Updating global stylesheets...',
+    'Pre-fetching resources...',
+    'Scanning for tech debt...',
+    'Calibrating 3D environments...',
+    'Monitoring server health...',
+    'Enhancing interface response...',
+    'Generating neural layouts...',
+    'Compressing transmission data...',
+    'Authenticating secure tunnel...',
+    'Indexing modern solutions...'
+  ];
+
+  function addLog() {
+    const line = document.createElement('div');
+    line.className = 'log-line';
+    const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const activity = activities[Math.floor(Math.random() * activities.length)];
+    line.innerHTML = `<span style="opacity: 0.5;">[${timestamp}]</span> > ${activity}`;
+
+    container.prepend(line);
+
+    // Keep only last 5 lines
+    if (container.children.length > 5) {
+      container.lastElementChild.remove();
+    }
+
+    // Schedule next log
+    setTimeout(addLog, 3000 + Math.random() * 5000);
+  }
+
+  // Start after a delay
+  setTimeout(addLog, 2000);
+}
+
+/**
+ * Floating Nudge: Periodically pulses the CTA button
+ */
+function initFloatingNudge() {
+  const cta = document.querySelector('.nav-cta .btn-primary');
+  if (!cta) return;
+
+  setInterval(() => {
+    cta.classList.add('pulse-anim');
+    setTimeout(() => cta.classList.remove('pulse-anim'), 2000);
+  }, 10000);
+}
 
 /**
  * 1. Visual Texture: Noise Overlay
@@ -247,32 +310,71 @@ function initContactForm() {
   const form = document.getElementById('contactForm');
   if (!form) return;
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = form.querySelector('button[type="submit"]');
-    const original = btn.innerHTML;
+    if (btn && btn.classList.contains('loading')) return;
 
-    btn.innerHTML = 'Sending...';
-    btn.classList.add('loading');
+    const originalText = btn ? btn.innerHTML : 'Send Message';
+    if (btn) {
+      btn.innerHTML = 'Sending...';
+      btn.classList.add('loading');
+    }
 
-    setTimeout(() => {
-      btn.innerHTML = original;
-      btn.classList.remove('loading');
+    // Collect form data
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
 
-      // Use Custom Toast
-      if (window.showToast) {
-        window.showToast('Message Sent', 'We will get back to you shortly!', 'success');
-      } else {
-        alert('Message Sent!');
-      }
-      form.reset();
-
-      // Reset custom selects visuals
-      document.querySelectorAll('.custom-select__trigger span').forEach(span => {
-        // Try to find the default placeholder or first option text
-        // Simply clearing or resetting to default would be complex, ignoring for now or reset to first option
+    try {
+      const response = await fetch('https://formsubmit.co/ajax/info@moslogix.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
       });
-    }, 1500);
+
+      if (!response.ok) throw new Error('Network response was not ok');
+
+      const result = await response.json();
+
+      if (result.success === 'true' || result.success === true) {
+        if (window.showToast) {
+          window.showToast('Message Sent', 'We will get back to you shortly!', 'success');
+        } else {
+          alert('Message Sent!');
+        }
+        form.reset();
+
+        // Reset custom selects
+        document.querySelectorAll('.custom-select__trigger span').forEach(span => {
+          const wrapper = span.closest('.custom-select-wrapper');
+          if (wrapper) {
+            const select = wrapper.querySelector('select');
+            if (select && select.options[0]) {
+              span.textContent = select.options[0].text;
+            }
+          }
+        });
+      } else {
+        throw new Error(result.message || 'Submission failed');
+      }
+    } catch (error) {
+      console.warn('AJAX Submission Error, falling back to standard submission:', error);
+
+      // FALLBACK: Standard Form Submission
+      form.action = "https://formsubmit.co/info@moslogix.com";
+      form.method = "POST";
+      form.submit();
+
+      return;
+    } finally {
+      if (btn) {
+        btn.innerHTML = originalText;
+        btn.classList.remove('loading');
+      }
+    }
   });
 }
 
@@ -459,5 +561,137 @@ function initPricingTiers() {
         }
       });
     });
+  });
+}
+/**
+ * 9. Page Transitions
+ * Creates a glassmorphic loader and handles smooth entry.
+ */
+function initPageTransitions() {
+  const loader = document.createElement('div');
+  loader.className = 'page-loader';
+  loader.innerHTML = `
+    <div class="loader-content">
+      <img src="images/Logo.png" alt="MOS Logix" class="loader-logo">
+      <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+  `;
+  document.body.prepend(loader);
+
+  const progress = loader.querySelector('.loader-progress');
+
+  // Simulate progress
+  let width = 0;
+  const interval = setInterval(() => {
+    width += Math.random() * 30;
+    if (width > 100) width = 100;
+    progress.style.width = width + '%';
+
+    if (width === 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        loader.classList.add('fade-out');
+        document.body.classList.add('page-ready');
+      }, 400);
+    }
+  }, 100);
+
+  // Intercept links for smooth out-transition (optional but nice)
+  document.querySelectorAll('a').forEach(link => {
+    if (link.hostname === window.location.hostname &&
+      !link.hash &&
+      !link.getAttribute('target')) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.href;
+        loader.classList.remove('fade-out');
+        progress.style.width = '0%';
+        setTimeout(() => window.location.href = href, 600);
+      });
+    }
+  });
+}
+
+/**
+ * 10. Dynamic Background (Mouse Repel)
+ * Makes particles react to mouse movement.
+ */
+function initDynamicBackground() {
+  const particles = document.querySelectorAll('.particle');
+  if (!particles.length || window.innerWidth < 768) return;
+
+  document.addEventListener('mousemove', (e) => {
+    const { clientX, clientY } = e;
+
+    particles.forEach(p => {
+      const rect = p.getBoundingClientRect();
+      const pX = rect.left + rect.width / 2;
+      const pY = rect.top + rect.height / 2;
+
+      const dist = Math.hypot(clientX - pX, clientY - pY);
+
+      if (dist < 200) {
+        const angle = Math.atan2(clientY - pY, clientX - pX);
+        const force = (200 - dist) / 20;
+        const moveX = -Math.cos(angle) * force;
+        const moveY = -Math.sin(angle) * force;
+        p.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.2)`;
+      } else {
+        p.style.transform = '';
+      }
+    });
+  });
+}
+
+/**
+ * 11. Stat Counters
+ * Animates numbers when they scroll into view.
+ */
+function initStatCounters() {
+  const stats = [
+    { selector: '.meta-value:contains("Weeks")', suffix: ' Weeks' },
+    { selector: '.meta-value:contains("Lighthouse")', suffix: '+ Lighthouse' }
+  ];
+
+  // Helper to find elements by text since CSS doesn't support :contains
+  const findByText = (text) => {
+    return Array.from(document.querySelectorAll('.meta-value, .feature-name, p')).filter(el => el.textContent.includes(text));
+  };
+
+  const animateValue = (obj, start, end, duration, suffix = '') => {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const value = Math.floor(progress * (end - start) + start);
+      obj.textContent = value + suffix;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const text = el.textContent;
+        const match = text.match(/(\d+)/);
+        if (match) {
+          const endValue = parseInt(match[0]);
+          const suffix = text.replace(match[0], '');
+          animateValue(el, 0, endValue, 1500, suffix);
+        }
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  // Look for specific patterns like "X-Y Weeks" or "X+"
+  document.querySelectorAll('.meta-value, .stat-number').forEach(el => {
+    if (el.textContent.match(/\d+/)) {
+      observer.observe(el);
+    }
   });
 }
