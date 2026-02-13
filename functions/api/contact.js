@@ -10,7 +10,13 @@ import { connect } from 'cloudflare:sockets';
 export async function onRequest(context) {
     const { request, env } = context;
 
-    // 1. Method Security: POST only
+    // 1. Method Security: Allow GET for health checks, POST for submissions
+    if (request.method === 'GET') {
+        return new Response(JSON.stringify({ success: true, message: 'Contact API is active and waiting for POST' }), {
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+
     if (request.method !== 'POST') {
         return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
             status: 405,
@@ -21,7 +27,8 @@ export async function onRequest(context) {
     // 1b. Same-Origin Security Check
     const origin = request.headers.get('origin');
     const url = new URL(request.url);
-    if (origin && new URL(origin).host !== url.host) {
+    // Allow same-host even if protocol differs slightly (http vs https during proxying)
+    if (origin && new URL(origin).hostname !== url.hostname) {
         return new Response(JSON.stringify({ success: false, error: 'Forbidden' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json' }
