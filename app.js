@@ -315,19 +315,24 @@ function initContactForm() {
     const btn = form.querySelector('button[type="submit"]');
     if (btn && btn.classList.contains('loading')) return;
 
+    // Basic Front-end validation
+    const emailInput = form.querySelector('input[type="email"]');
+    if (emailInput && !emailInput.value.includes('@')) {
+      if (window.showToast) window.showToast('Invalid Email', 'Please enter a valid email address.', 'error');
+      return;
+    }
+
     const originalText = btn ? btn.innerHTML : 'Send Message';
     if (btn) {
-      btn.innerHTML = 'Sending...';
+      btn.innerHTML = '<span class="loader-dots">Sending...</span>';
       btn.classList.add('loading');
     }
 
     // Check for local file protocol
     if (window.location.protocol === 'file:') {
-      console.error('Local Testing Detected: The contact form requires a server (like Cloudflare Pages or a local Wrangler server) to process the API request.');
+      console.error('Local Testing Detected');
       if (window.showToast) {
-        window.showToast('Local Testing Detected', 'The contact form requires a web server to function. Please test on the live site or via "wrangler pages dev".', 'error');
-      } else {
-        alert('Local Testing Detected: The contact form requires a web server to function.');
+        window.showToast('Local Testing', 'API requires a server. Use "wrangler pages dev" for local testing.', 'error');
       }
       if (btn) {
         btn.innerHTML = originalText;
@@ -349,11 +354,21 @@ function initContactForm() {
         body: JSON.stringify(data)
       });
 
-      const result = await response.json();
+      let result;
+      const contentType = response.headers.get('content-type');
+
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        // Handle unexpected HTML response (e.g. 405 error from Cloudflare)
+        const text = await response.text();
+        console.error('Non-JSON response received:', text);
+        throw new Error(`Server returned ${response.status} ${response.statusText}. Please check if the API is correctly deployed.`);
+      }
 
       if (response.ok && result.success) {
         if (window.showToast) {
-          window.showToast('Message Sent', 'We will get back to you shortly!', 'success');
+          window.showToast('Message Sent', 'We have received your inquiry. Check your inbox soon!', 'success');
         } else {
           alert('Message Sent!');
         }
@@ -375,9 +390,9 @@ function initContactForm() {
     } catch (error) {
       console.error('Submission Error:', error);
       if (window.showToast) {
-        window.showToast('Submission Failed', error.message || 'Please try again later.', 'error');
+        window.showToast('Submission Failed', error.message, 'error');
       } else {
-        alert('Failed to send message: ' + error.message);
+        alert('Error: ' + error.message);
       }
     } finally {
       if (btn) {
@@ -387,6 +402,7 @@ function initContactForm() {
     }
   });
 }
+
 
 function initBookingSlots() {
   const slots = document.querySelectorAll('.booking-slot');
