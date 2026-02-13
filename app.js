@@ -321,6 +321,21 @@ function initContactForm() {
       btn.classList.add('loading');
     }
 
+    // Check for local file protocol
+    if (window.location.protocol === 'file:') {
+      console.error('Local Testing Detected: The contact form requires a server (like Cloudflare Pages or a local Wrangler server) to process the API request.');
+      if (window.showToast) {
+        window.showToast('Local Testing Detected', 'The contact form requires a web server to function. Please test on the live site or via "wrangler pages dev".', 'error');
+      } else {
+        alert('Local Testing Detected: The contact form requires a web server to function.');
+      }
+      if (btn) {
+        btn.innerHTML = originalText;
+        btn.classList.remove('loading');
+      }
+      return;
+    }
+
     // Collect form data
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
