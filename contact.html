@@ -75,6 +75,12 @@
                         <input type="hidden" name="_template" value="table">
                         <input type="hidden" name="_captcha" value="false">
 
+                        <!-- Honeypot field - hidden from users -->
+                        <div style="display:none">
+                            <label>Leave this field empty</label>
+                            <input name="bot_ref" autocomplete="off">
+                        </div>
+
                         <div class="form-group">
                             <label for="name" class="form-label">Your Name *</label>
                             <input type="text" id="name" name="name" class="form-input" placeholder="John Doe" required>

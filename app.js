@@ -326,20 +326,17 @@ function initContactForm() {
     const data = Object.fromEntries(formData.entries());
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/info@moslogix.com', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
-
       const result = await response.json();
 
-      if (result.success === 'true' || result.success === true) {
+      if (response.ok && result.success) {
         if (window.showToast) {
           window.showToast('Message Sent', 'We will get back to you shortly!', 'success');
         } else {
@@ -358,17 +355,15 @@ function initContactForm() {
           }
         });
       } else {
-        throw new Error(result.message || 'Submission failed');
+        throw new Error(result.error || 'Submission failed');
       }
     } catch (error) {
-      console.warn('AJAX Submission Error, falling back to standard submission:', error);
-
-      // FALLBACK: Standard Form Submission
-      form.action = "https://formsubmit.co/info@moslogix.com";
-      form.method = "POST";
-      form.submit();
-
-      return;
+      console.error('Submission Error:', error);
+      if (window.showToast) {
+        window.showToast('Submission Failed', error.message || 'Please try again later.', 'error');
+      } else {
+        alert('Failed to send message: ' + error.message);
+      }
     } finally {
       if (btn) {
         btn.innerHTML = originalText;
