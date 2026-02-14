@@ -205,6 +205,24 @@ export async function onRequestPost({ request, env }) {
             conversation.budget
         );
 
+        // Check AI Limit (30 emails)
+        const { count: aiCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'ai');
+
+        if (aiCount >= 30) {
+            console.warn('AI Email Limit Reached (30/30). Skipping AI generation.');
+            await supabase.from('messages').insert([{
+                conversation_id: conversation.id,
+                role: 'system',
+                content: 'System: AI Limit Reached. Auto-reply disabled.'
+            }]);
+            return new Response(JSON.stringify({ success: true, message: 'Stored — AI Limit Reached' }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
         const aiReplyText = await generateAIResponse(conversationHistory, env);
 
         // Check for escalation

@@ -58,9 +58,59 @@ export async function onRequestGet({ request, env }) {
 
         const url = new URL(request.url);
         const conversationId = url.searchParams.get('id');
+        const getStats = url.searchParams.get('stats');
+        const getSites = url.searchParams.get('sites');
+        const siteId = url.searchParams.get('site_id');
 
         const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
 
+        // ─── STATS ─────────────────────────────────────────────────
+        if (getStats) {
+            const { count: aiCount } = await supabase
+                .from('messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('role', 'ai');
+
+            const { count: webCount } = await supabase
+                .from('website_generations')
+                .select('*', { count: 'exact', head: true });
+
+            return new Response(JSON.stringify({
+                stats: {
+                    ai_emails: aiCount || 0,
+                    websites: webCount || 0
+                }
+            }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
+        // ─── SITES LIST ────────────────────────────────────────────
+        if (getSites) {
+            const { data: sites, error } = await supabase
+                .from('website_generations')
+                .select('id, prompt, created_at')
+                .order('created_at', { ascending: false });
+
+            return new Response(JSON.stringify({ sites: sites || [] }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
+        // ─── SINGLE SITE ───────────────────────────────────────────
+        if (siteId) {
+            const { data: site, error } = await supabase
+                .from('website_generations')
+                .select('*')
+                .eq('id', siteId)
+                .single();
+
+            return new Response(JSON.stringify({ site }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
+        // ─── CONVERSATIONS ─────────────────────────────────────────
         // If an ID is provided, return the conversation with its messages
         if (conversationId) {
             // Get conversation details

@@ -215,7 +215,24 @@ export async function onRequestPost({ request, env }) {
             content: message
         }]);
 
-        // 6. Generate AI response
+        // 6. Generate AI response (Check Limit First)
+
+        // Count total AI messages (emails generated)
+        const { count: aiCount } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('role', 'ai');
+
+        if (aiCount >= 30) {
+            console.warn('AI Email Limit Reached (30/30). Skipping AI generation.');
+            // We still accept the contact form, just don't generate AI reply.
+            // Maybe send a simpler "We received your message" without AI?
+            // For now, just return success so we don't break the form.
+            return new Response(JSON.stringify({ success: true, message: 'Message sent! (AI Limit Reached)' }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
         const conversationHistory = buildConversationHistory(
             [{ role: 'client', content: message }],
             name,

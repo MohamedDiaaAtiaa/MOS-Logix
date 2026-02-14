@@ -104,68 +104,52 @@
         }
 
         .admin-header .logo img {
-            height: 32px;
+            letter-spacing: 1px;
+        }
+
+        .logo img {
+            height: 28px;
+            /* Shrunk from 32px */
             width: auto;
         }
 
-        .admin-header .logo span {
-            font-family: var(--font-display);
-            font-size: 14px;
-            color: var(--accent);
-            letter-spacing: 2px;
-        }
-
-        .admin-header .header-actions {
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
         }
 
         .status-pill {
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 12px;
+            padding: 4px 10px;
             border-radius: 100px;
-            font-size: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--green);
+            font-size: 11px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .status-pill.active {
-            background: rgba(52, 211, 153, 0.15);
-            color: var(--green);
-        }
-
-        .status-pill.active::before {
+        .status-pill::before {
             content: '';
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--green);
-            animation: pulse-dot 2s infinite;
-        }
-
-        @keyframes pulse-dot {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.4;
-            }
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
         }
 
         .btn-logout {
-            padding: 6px 16px;
+            padding: 6px 12px;
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
             background: transparent;
             color: var(--text-secondary);
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
             transition: 0.2s;
         }
@@ -177,15 +161,17 @@
 
         /* ─── Sidebar (Conversation List) ────────────────────────────────── */
         .sidebar {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            width: 320px;
+            /* Fixed width */
         }
 
         .sidebar-header {
-            padding: 16px 20px;
+            padding: 16px;
             border-bottom: 1px solid var(--border);
         }
 
@@ -193,18 +179,22 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text-secondary);
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .search-box {
             position: relative;
+            margin-bottom: 0;
         }
 
         .search-box input {
             width: 100%;
-            padding: 10px 14px 10px 36px;
+            padding: 8px 12px 8px 32px;
             background: var(--bg-primary);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
@@ -705,21 +695,26 @@
         <!-- Sidebar: Conversation List -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>Conversations</h2>
+                <h2>
+                    <span>Conversations</span>
+                    <button class="btn-action" id="toggleViewBtn" style="font-size: 10px; padding: 2px 8px;">View
+                        Sites</button>
+                </h2>
                 <div class="search-box">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8" />
                         <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
-                    <input type="text" id="searchInput" placeholder="Search by name or email...">
+                    <input type="text" id="searchInput" placeholder="Search...">
                 </div>
-                <div class="filter-tabs">
+                <div class="filter-tabs" id="convFilters">
                     <button class="filter-tab active" data-filter="all">All</button>
                     <button class="filter-tab" data-filter="active">Active</button>
                     <button class="filter-tab" data-filter="escalated">Escalated</button>
                     <button class="filter-tab" data-filter="closed">Closed</button>
                 </div>
             </div>
+
             <div class="conversation-list" id="conversationList">
                 <div class="loading-spinner">
                     <div class="spinner"></div>
@@ -727,14 +722,34 @@
             </div>
         </div>
 
-        <!-- Chat Panel -->
-        <div class="chat-panel" id="chatPanel">
-            <div class="empty-state" id="emptyState">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                <h3>Select a conversation</h3>
-                <p>Click a conversation from the sidebar to view the message thread</p>
+        <!-- Chat Panel / Content Area -->
+        <div class="chat-panel" id="contentPanel">
+            <!-- Stats Bar -->
+            <div class="stats-bar"
+                style="background: var(--bg-primary); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; gap: 24px; font-size: 12px; color: var(--text-secondary);">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--purple);"></div>
+                    <span id="aiEmailStat">AI Emails: .../30</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--blue);"></div>
+                    <span id="webGenStat">Websites Generated: .../20</span>
+                </div>
+            </div>
+
+            <div id="chatContainer" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <h3>Select a conversation</h3>
+                    <p>Click a conversation from the sidebar to view the message thread</p>
+                </div>
+            </div>
+
+            <div id="sitesContainer" style="display: none; flex: 1; overflow-y: auto; padding: 24px;">
+                <h3>Generated Websites</h3>
+                <div id="sitesList" style="display: grid; gap: 16px; margin-top: 16px;"></div>
             </div>
         </div>
     </div>
@@ -748,6 +763,7 @@
         let activeConversationId = null;
         let currentFilter = 'all';
         let apiToken = sessionStorage.getItem('mos_admin_token');
+        let viewMode = 'conversations'; // 'conversations' or 'sites'
 
         // ─── DOM ───────────────────────────────────────────────────────────
         const loginOverlay = document.getElementById('loginOverlay');
@@ -756,9 +772,14 @@
         const loginError = document.getElementById('loginError');
         const logoutBtn = document.getElementById('logoutBtn');
         const conversationList = document.getElementById('conversationList');
-        const chatPanel = document.getElementById('chatPanel');
+        const contentPanel = document.getElementById('contentPanel');
+        const chatContainer = document.getElementById('chatContainer');
+        const sitesContainer = document.getElementById('sitesContainer');
         const searchInput = document.getElementById('searchInput');
         const filterTabs = document.querySelectorAll('.filter-tab');
+        const toggleViewBtn = document.getElementById('toggleViewBtn');
+        const aiEmailStat = document.getElementById('aiEmailStat');
+        const webGenStat = document.getElementById('webGenStat');
 
         // Change input placeholder since we use Username now
         document.getElementById('loginEmail').placeholder = "Username";
@@ -824,10 +845,142 @@
             loginOverlay.classList.add('hidden');
             adminLayout.style.display = 'grid';
             loadConversations();
+            loadStats();
         }
+
+        // ─── Load Stats ────────────────────────────────────────────────────
+        async function loadStats() {
+            try {
+                // We don't have a dedicated stats API, so we'll use Supabase client if possible, 
+                // BUT we removed Supabase client import to use custom auth in previous steps? 
+                // Wait, the previous admin.html imported Supabase client at the top. 
+                // Let's check imports.
+                // If we don't have Supabase client, we need to add it or create a server function for stats.
+                // Adding Supabase client back is easiest since we have the key in code (it was there before).
+
+                // Re-instantiate Supabase for read-only stats fetching (using anon key is fine if RLS allows)
+                // But wait, we secured the dashboard. 
+                // If we use anon key, anyone can read stats... 
+                // Actually, we should probably add a stats endpoint to `conversations.js` or a new `stats.js` that requires the Admin token.
+                // However, for speed, I'll use the existing `conversations.js` endpoint to return stats if requested, OR just use Supabase client.
+
+                // Let's use the `conversations.js` endpoint. I'll modify it to return stats.
+                // Or I can just fetch them directly here if I import Supabase.
+                // The user said "use the CLI to edit", implying speed.
+
+                // I will modify `conversations.js` to support `?stats=true`.
+                const res = await fetch('/api/conversations?stats=true', {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.stats) {
+                        aiEmailStat.textContent = `AI Emails: ${data.stats.ai_emails}/30`;
+                        webGenStat.textContent = `Websites Generated: ${data.stats.websites}/20`;
+                    }
+                }
+
+            } catch (e) { console.error('Stats load error', e); }
+        }
+
+        // ─── Toggle View ───────────────────────────────────────────────────
+        toggleViewBtn.addEventListener('click', () => {
+            if (viewMode === 'conversations') {
+                viewMode = 'sites';
+                toggleViewBtn.textContent = 'View Chats';
+                document.getElementById('conversationList').style.display = 'none';
+                document.getElementById('convFilters').style.display = 'none';
+                document.querySelector('.sidebar-header h2 span').textContent = 'Websites';
+
+                // Show sites list area in sidebar? Or just use main area?
+                // Design: Sidebar is for navigation. Let's list sites in sidebar?
+                // Or maybe we treat "Sites" as a separate mode entirely.
+                // Let's list sites in the sidebar and show preview in the main area.
+                loadSitesList();
+
+            } else {
+                viewMode = 'conversations';
+                toggleViewBtn.textContent = 'View Sites';
+                document.getElementById('conversationList').style.display = 'block';
+                document.getElementById('convFilters').style.display = 'flex';
+                document.querySelector('.sidebar-header h2 span').textContent = 'Conversations';
+                loadConversations();
+
+                // Hide sites specific things
+                // We need a separate list container for sites in the sidebar if we do this.
+                // For simplicity, let's just REPLACE content of conversationList.
+            }
+        });
+
+        async function loadSitesList() {
+            const listEl = document.getElementById('conversationList');
+            listEl.style.display = 'block';
+            listEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+            try {
+                const res = await fetch('/api/conversations?sites=true', {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+                const data = await res.json();
+
+                if (!data.sites || data.sites.length === 0) {
+                    listEl.innerHTML = '<div class="empty-state" style="padding:40px;"><p>No websites generated</p></div>';
+                    return;
+                }
+
+                listEl.innerHTML = data.sites.map(site => `
+                     <div class="conv-item" onclick="viewSite('${site.id}')">
+                        <div class="conv-item-header">
+                            <span class="conv-item-name">Prompt: ${escapeHtml(site.prompt.substring(0, 20))}...</span>
+                            <span class="conv-item-time">${formatTime(site.created_at)}</span>
+                        </div>
+                        <div class="conv-preview" style="font-size:11px;">${escapeHtml(site.prompt)}</div>
+                     </div>
+                `).join('');
+
+            } catch (e) {
+                console.error(e);
+                listEl.innerHTML = '<div class="empty-state"><p style="color:red">Failed to load sites</p></div>';
+            }
+        }
+
+        window.viewSite = async function (id) {
+            chatContainer.style.display = 'none';
+            sitesContainer.style.display = 'block';
+
+            // Fetch single site details? We already have them? 
+            // We need full content. 
+            // Let's fetch detail.
+            sitesContainer.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+            try {
+                const res = await fetch(`/api/conversations?site_id=${id}`, {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+                const data = await res.json();
+
+                sitesContainer.innerHTML = `
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 20px;">
+                        <h3>Prompt:</h3>
+                        <p style="color: var(--text-secondary); background: var(--bg-card); padding: 12px; border-radius: 8px;">${escapeHtml(data.site.prompt)}</p>
+                    </div>
+                    <div style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: white;">
+                        <iframe srcdoc="${escapeHtml(data.site.html_content)}" style="width: 100%; height: 600px; border: none;"></iframe>
+                    </div>
+                `;
+            } catch (e) {
+                sitesContainer.innerHTML = '<p style="color:red">Failed to load site</p>';
+            }
+        };
+
 
         // ─── Load Conversations ────────────────────────────────────────────
         async function loadConversations() {
+            if (viewMode !== 'conversations') return;
+
+            chatContainer.style.display = 'flex';
+            sitesContainer.style.display = 'none';
+
             conversationList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
 
             try {
@@ -904,8 +1057,8 @@
             renderConversationList();
 
             // Show loading in chat
-            chatPanel.innerHTML = '<div class="loading-spinner" style="flex:1; display:flex; align-items:center; justify-content:center;"><div class="spinner"></div></div>';
-            chatPanel.classList.add('active');
+            chatContainer.innerHTML = '<div class="loading-spinner" style="flex:1; display:flex; align-items:center; justify-content:center;"><div class="spinner"></div></div>';
+            contentPanel.classList.add('active'); // For mobile view
 
             try {
                 const res = await fetch(`/api/conversations?id=${id}`, {
@@ -922,14 +1075,14 @@
                 renderChat(data.conversation, data.messages);
             } catch (err) {
                 console.error(err);
-                chatPanel.innerHTML = `<div class="empty-state"><p style="color: var(--red);">Failed to load messages</p></div>`;
+                chatContainer.innerHTML = `<div class="empty-state"><p style="color: var(--red);">Failed to load messages</p></div>`;
             }
         };
 
         function renderChat(conversation, messages) {
             const isEscalated = conversation.status === 'escalated';
 
-            chatPanel.innerHTML = `
+            chatContainer.innerHTML = `
         <div class="chat-header">
           <div style="display: flex; align-items: center;">
             <button class="btn-back-mobile" onclick="closeMobileChat()">← Back</button>
@@ -970,7 +1123,7 @@
         }
 
         function closeMobileChat() {
-            chatPanel.classList.remove('active');
+            contentPanel.classList.remove('active');
             activeConversationId = null;
             renderConversationList();
         }
