@@ -28,39 +28,37 @@ export async function onRequest({ request }) {
 
 export async function onRequestGet({ request, env }) {
     try {
-        // 1. Auth Check (Custom Admin Credential)
-        const authHeader = request.headers.get('Authorization');
-        const token = authHeader ? authHeader.replace('Bearer ', '') : null;
-
-        if (!token) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: Missing credentials' }), {
-                status: 401,
-                headers: { 'Content-Type': 'application/json', ...corsHeaders }
-            });
-        }
-
-        // Verify password hash (SHA-256 of 'QwErAsDZx@2026')
-        // We use Web Crypto API which is available in Cloudflare Workers
-        const msgBuffer = new TextEncoder().encode(token);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-        // Expected hash for 'QwErAsDZx@2026'
-        const EXPECTED_HASH = 'd1d5f5926de23ba5bbe8203a3b928e4159c3da740077b12dd831642bf4ba2fa4';
-
-        if (hashHex !== EXPECTED_HASH) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: Invalid credentials' }), {
-                status: 403,
-                headers: { 'Content-Type': 'application/json', ...corsHeaders }
-            });
-        }
-
         const url = new URL(request.url);
         const conversationId = url.searchParams.get('id');
         const getStats = url.searchParams.get('stats');
         const getSites = url.searchParams.get('sites');
         const siteId = url.searchParams.get('site_id');
+
+        // AUTH CHECK
+        // We allow public access for 'getSites' (Showcase) and 'siteId' (Showcase Detail)
+        // But 'getStats' and 'conversationId' require Admin Auth.
+
+        const authHeader = request.headers.get('Authorization');
+        const isPublicRequest = getSites === 'true' || (siteId && !authHeader);
+
+        // Verify Auth if NOT public request
+        if (!isPublicRequest) {
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+            }
+            const token = authHeader.split(' ')[1];
+
+            // 1. Check Hardcoded Super Admin
+            const isSuperAdmin = await verifyPassword(token, env);
+
+            // 2. Check DB Admins if not Super Admin
+            let isDbAdmin = false;
+            // if (!isSuperAdmin) { isDbAdmin = await verifyDbAdmin(token, env); } 
+
+            if (!isSuperAdmin && !isDbAdmin) {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403, headers: corsHeaders });
+            }
+        }
 
         const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
 
@@ -106,6 +104,22 @@ export async function onRequestGet({ request, env }) {
                 .single();
 
             return new Response(JSON.stringify({ site }), {
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
+        // ─── ADMINS LIST (GET) ─────────────────────────────────────
+        if (url.searchParams.get('admins') === 'true') {
+            // Only Super Admin can view/edit admins
+            if (!isSuperAdmin) {
+                return new Response(JSON.stringify({ error: 'Unauthorized: Super Admin only' }), { status: 403, headers: corsHeaders });
+            }
+
+            const { data: admins, error } = await supabase
+                .from('admins')
+                .select('id, username, created_at');
+
+            return new Response(JSON.stringify({ admins: admins || [] }), {
                 headers: { 'Content-Type': 'application/json', ...corsHeaders }
             });
         }
@@ -193,3 +207,67 @@ export async function onRequestGet({ request, env }) {
         });
     }
 }
+
+export async function onRequestPost({ request, env }) {
+    try {
+        if (request.method === 'OPTIONS') {
+            return new Response(null, { headers: corsHeaders });
+        }
+
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        }
+        const token = authHeader.split(' ')[1];
+
+        // Only Super Admin can manage admins
+        const isSuperAdmin = await verifyPassword(token, env);
+        if (!isSuperAdmin) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: Super Admin only' }), { status: 403, headers: corsHeaders });
+        }
+
+        const body = await request.json();
+        const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
+
+        if (body.action === 'add_admin') {
+            const { username, password } = body;
+            if (!username || !password) return new Response('Missing fields', { status: 400 });
+
+            // Hash password
+            const msgBuffer = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            const { error } = await supabase.from('admins').insert([{
+                username,
+                password_hash: hashHex
+            }]);
+
+            if (error) throw error;
+            return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+        }
+
+        if (body.action === 'delete_admin') {
+            const { id } = body;
+            const { error } = await supabase.from('admins').delete().eq('id', id);
+            if (error) throw error;
+            return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
+        }
+
+        return new Response('Invalid action', { status: 400 });
+
+    } catch (error) {
+        return new Response(JSON.stringify({ error: error.message }), { status: 500, headers: corsHeaders });
+    }
+}
+
+async function verifyPassword(token, env) {
+    const msgBuffer = new TextEncoder().encode(token);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    const EXPECTED_HASH = 'd1d5f5926de23ba5bbe8203a3b928e4159c3da740077b12dd831642bf4ba2fa4';
+    return hashHex === EXPECTED_HASH;
+}
+

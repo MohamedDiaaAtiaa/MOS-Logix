@@ -697,8 +697,12 @@
             <div class="sidebar-header">
                 <h2>
                     <span>Conversations</span>
-                    <button class="btn-action" id="toggleViewBtn" style="font-size: 10px; padding: 2px 8px;">View
-                        Sites</button>
+                    <div style="display:flex; gap:4px;">
+                        <button class="btn-action" id="toggleViewBtn" style="font-size: 10px; padding: 2px 8px;">View
+                            Sites</button>
+                        <button class="btn-action" id="toggleAdminBtn"
+                            style="font-size: 10px; padding: 2px 8px; display:none;">Admins</button>
+                    </div>
                 </h2>
                 <div class="search-box">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -719,6 +723,20 @@
                 <div class="loading-spinner">
                     <div class="spinner"></div>
                 </div>
+            </div>
+
+            <div id="adminList" style="display: none; padding: 16px;">
+                <h3 style="font-size:12px; text-transform:uppercase; color:var(--text-secondary); margin-bottom:12px;">
+                    Manage Admins</h3>
+                <div style="display:flex; gap:8px; margin-bottom:16px;">
+                    <input type="text" id="newAdminName" placeholder="Username"
+                        style="flex:1; padding:6px; background:var(--bg-primary); border:1px solid var(--border); color:white; font-size:12px; border-radius:4px;">
+                    <input type="password" id="newAdminPass" placeholder="Password"
+                        style="flex:1; padding:6px; background:var(--bg-primary); border:1px solid var(--border); color:white; font-size:12px; border-radius:4px;">
+                    <button id="addAdminBtn"
+                        style="padding:6px 12px; background:var(--accent); color:black; border:none; border-radius:4px; cursor:pointer; font-weight:600; font-size:16px;">+</button>
+                </div>
+                <div id="adminsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
             </div>
         </div>
 
@@ -1161,8 +1179,139 @@
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
+        // ─── ADMIN MANAGEMENT ──────────────────────────────────────────────
+        const toggleAdminBtn = document.getElementById('toggleAdminBtn');
+        const adminList = document.getElementById('adminList');
+        const addAdminBtn = document.getElementById('addAdminBtn');
+        const adminsContainer = document.getElementById('adminsContainer');
+        const newAdminName = document.getElementById('newAdminName');
+        const newAdminPass = document.getElementById('newAdminPass');
+
+        // Check if Super Admin (simple client-side check, actual security is on server)
+        // We can't know for sure without an API call, but we can try to load admins.
+        // If it fails with 403, we hide the button.
+
+        async function checkSuperAdmin() {
+            // Try to fetch admins list. Only Super Admin can.
+            try {
+                const res = await fetch('/api/conversations?admins=true', {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+
+                if (res.ok) {
+                    toggleAdminBtn.style.display = 'block';
+                    loadAdmins();
+                } else {
+                    toggleAdminBtn.style.display = 'none';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        toggleAdminBtn.addEventListener('click', () => {
+            if (viewMode === 'admins') {
+                // Switch back to conversations
+                viewMode = 'conversations';
+                toggleAdminBtn.classList.remove('active'); // Style?
+                adminList.style.display = 'none';
+                conversationList.style.display = 'block';
+                document.getElementById('convFilters').style.display = 'flex';
+                document.querySelector('.sidebar-header h2 span').textContent = 'Conversations';
+                loadConversations();
+            } else {
+                viewMode = 'admins';
+                toggleAdminBtn.classList.add('active');
+                conversationList.style.display = 'none';
+                document.getElementById('convFilters').style.display = 'none';
+                document.getElementById('sitesContainer').style.display = 'none';
+                chatContainer.style.display = 'flex'; // Keep layout
+                chatContainer.innerHTML = '<div class="empty-state"><h3>Admin Management</h3><p>Use the sidebar to manage administrators.</p></div>';
+
+                adminList.style.display = 'block';
+                document.querySelector('.sidebar-header h2 span').textContent = 'Admins';
+                loadAdmins();
+            }
+        });
+
+        async function loadAdmins() {
+            adminsContainer.innerHTML = '<div class="spinner"></div>';
+            try {
+                const res = await fetch('/api/conversations?admins=true', {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+                const data = await res.json();
+
+                if (!data.admins || data.admins.length === 0) {
+                    adminsContainer.innerHTML = '<div style="color:var(--text-secondary); font-size:12px;">No additional admins.</div>';
+                    return;
+                }
+
+                adminsContainer.innerHTML = data.admins.map(admin => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:var(--bg-primary); border-radius:4px; border:1px solid var(--border);">
+                        <span style="color:var(--text-primary); font-size:12px;">${escapeHtml(admin.username)}</span>
+                        <button onclick="deleteAdmin('${admin.id}')" style="background:none; border:none; color:var(--red); cursor:pointer; font-size:16px;">&times;</button>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                adminsContainer.innerHTML = '<div style="color:var(--red); font-size:12px;">Failed to load.</div>';
+            }
+        }
+
+        addAdminBtn.addEventListener('click', async () => {
+            const username = newAdminName.value.trim();
+            const password = newAdminPass.value.trim();
+            if (!username || !password) return;
+
+            addAdminBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/conversations', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'add_admin',
+                        username,
+                        password
+                    })
+                });
+
+                if (res.ok) {
+                    newAdminName.value = '';
+                    newAdminPass.value = '';
+                    loadAdmins();
+                } else {
+                    alert('Failed to add admin');
+                }
+            } catch (e) { console.error(e); }
+            finally { addAdminBtn.disabled = false; }
+        });
+
+        window.deleteAdmin = async function (id) {
+            if (!confirm('Delete this admin?')) return;
+            try {
+                const res = await fetch('/api/conversations', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'delete_admin',
+                        id
+                    })
+                });
+                if (res.ok) loadAdmins();
+                else alert('Failed to delete');
+            } catch (e) { console.error(e); }
+        };
+
         // ─── Init ──────────────────────────────────────────────────────────
         checkSession();
+        // Delay checkSuperAdmin slightly to allow session check to set token usage if needed
+        setTimeout(checkSuperAdmin, 1000);
     </script>
 </body>
 
