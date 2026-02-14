@@ -91,7 +91,7 @@ async function sendEmailReply(to, subject, htmlBody, env) {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            from: 'onboarding@resend.dev',
+            from: 'MOS Logix <info@moslogix.com>',
             to: to,
             subject: subject,
             html: htmlBody
