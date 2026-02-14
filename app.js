@@ -343,7 +343,7 @@ function initContactForm() {
     formData.append('_template', 'table');
 
     try {
-      const response = await fetch('https://formsubmit.co/ajax/info@moslogix.com', {
+      const response = await fetch('/api/submit', {
         method: 'POST',
         body: formData
       });
