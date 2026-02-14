@@ -44,20 +44,20 @@ function initSystemLog() {
   if (!container) return;
 
   const activities = [
-    'Optimizing digital assets...',
-    'Checking UX friction points...',
-    'Analyzing conversion funnel...',
-    'Syncing with digital core...',
-    'Updating global stylesheets...',
-    'Pre-fetching resources...',
-    'Scanning for tech debt...',
-    'Calibrating 3D environments...',
-    'Monitoring server health...',
-    'Enhancing interface response...',
-    'Generating neural layouts...',
-    'Compressing transmission data...',
-    'Authenticating secure tunnel...',
-    'Indexing modern solutions...'
+    'Initializing AI architecture...',
+    'Analyzing user requirements...',
+    'Building website structure...',
+    'Optimizing for performance...',
+    'Integrating design modules...',
+    'Calibrating UX interactions...',
+    'Generating responsive layouts...',
+    'Deploying to edge network...',
+    'Verifying SEO metadata...',
+    'Constructing component library...',
+    'Fetching AI models...',
+    'Synchronizing database states...',
+    'Refining visual aesthetics...',
+    'Preparing launch sequence...'
   ];
 
   function addLog() {
@@ -594,48 +594,31 @@ function initPricingTiers() {
  * Creates a glassmorphic loader and handles smooth entry.
  */
 function initPageTransitions() {
+  // Check if we've already shown the loader this session
+  if (sessionStorage.getItem('mos_loader_shown')) {
+    document.body.classList.add('page-ready');
+    return;
+  }
+
   const loader = document.createElement('div');
   loader.className = 'page-loader';
   loader.innerHTML = `
     <div class="loader-content">
-      <img src="images/Logo.png" alt="MOS Logix" class="loader-logo">
-      <div class="loader-bar"><div class="loader-progress"></div></div>
+      <div class="loader-circle"></div>
     </div>
   `;
   document.body.prepend(loader);
 
-  const progress = loader.querySelector('.loader-progress');
-
   // Simulate progress
-  let width = 0;
-  const interval = setInterval(() => {
-    width += Math.random() * 30;
-    if (width > 100) width = 100;
-    progress.style.width = width + '%';
+  setTimeout(() => {
+    loader.classList.add('fade-out');
+    document.body.classList.add('page-ready');
+    sessionStorage.setItem('mos_loader_shown', 'true');
+    setTimeout(() => loader.remove(), 800);
+  }, 1000);
 
-    if (width === 100) {
-      clearInterval(interval);
-      setTimeout(() => {
-        loader.classList.add('fade-out');
-        document.body.classList.add('page-ready');
-      }, 400);
-    }
-  }, 100);
-
-  // Intercept links for smooth out-transition (optional but nice)
-  document.querySelectorAll('a').forEach(link => {
-    if (link.hostname === window.location.hostname &&
-      !link.hash &&
-      !link.getAttribute('target')) {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const href = link.href;
-        loader.classList.remove('fade-out');
-        progress.style.width = '0%';
-        setTimeout(() => window.location.href = href, 600);
-      });
-    }
-  });
+  // Intercept links strictly for same-origin navigation if needed,
+  // but we won't show the full loader again to keep it fast.
 }
 
 /**

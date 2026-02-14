@@ -1,12 +1,19 @@
 {
-    "name": "mos-logix",
-    "compatibility_date": "2024-04-01",
-    "compatibility_flags": [
-        "nodejs_compat"
-    ],
-    "pages_build_config": {
-        "directory": "/",
-        "build_command": "",
-        "build_output_directory": "/"
-    }
+	"name": "mos-logix",
+	"compatibility_date": "2024-04-01",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"pages_build_config": {
+		"directory": "/",
+		"build_command": "",
+		"build_output_directory": "/"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "AI_LIMITS",
+			"id": "a440c39beaf840a28a3caaf9cb007c34",
+			"remote": true
+		}
+	]
 }

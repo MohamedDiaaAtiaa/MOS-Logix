@@ -2233,6 +2233,7 @@ select {
 /* ─── Dynamic Enhancements (Page Loader & Transitions) ────────────────────── */
 
 /* Page Loader Overlay */
+/* Page Loader Overlay */
 .page-loader {
     position: fixed;
     top: 0;
@@ -2257,45 +2258,22 @@ select {
     text-align: center;
 }
 
-.loader-logo {
-    width: 80px;
-    margin-bottom: var(--spacing-lg);
-    filter: drop-shadow(0 0 15px var(--accent-teal));
-    animation: loaderPulse 2s infinite ease-in-out;
+/* Simple Loading Circle */
+.loader-circle {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(20, 255, 236, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--accent-teal);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: var(--spacing-md);
+    box-shadow: 0 0 15px rgba(20, 255, 236, 0.2);
 }
 
-@keyframes loaderPulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-        opacity: 0.8;
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
-
-    50% {
-        transform: scale(1.1);
-        opacity: 1;
-    }
-}
-
-.loader-bar {
-    width: 200px;
-    height: 2px;
-    background: rgba(20, 255, 236, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-    position: relative;
-}
-
-.loader-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 0%;
-    background: var(--accent-teal);
-    box-shadow: 0 0 10px var(--accent-teal);
-    transition: width 0.4s ease;
 }
 
 /* Staggered Reveal Enhancements */
@@ -2562,8 +2540,17 @@ select {
 }
 
 @keyframes logPulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.5; }
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
 }
 
 .log-content {
@@ -2629,10 +2616,21 @@ select {
 }
 
 @keyframes drift {
-    0% { transform: translate(0, 0) rotate(0deg) scale(1.0); }
-    33% { transform: translate(30px, 50px) rotate(10deg) scale(1.1); }
-    66% { transform: translate(-20px, 20px) rotate(-5deg) scale(0.9); }
-    100% { transform: translate(0, 0) rotate(0deg) scale(1.0); }
+    0% {
+        transform: translate(0, 0) rotate(0deg) scale(1.0);
+    }
+
+    33% {
+        transform: translate(30px, 50px) rotate(10deg) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-20px, 20px) rotate(-5deg) scale(0.9);
+    }
+
+    100% {
+        transform: translate(0, 0) rotate(0deg) scale(1.0);
+    }
 }
 
 /* Core Pulse */
@@ -2641,8 +2639,17 @@ select {
 }
 
 @keyframes corePulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 30px var(--accent-teal); }
-    50% { transform: scale(1.05); box-shadow: 0 0 60px var(--glow-cyan); }
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 30px var(--accent-teal);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 60px var(--glow-cyan);
+    }
 }
 
 @media (max-width: 768px) {

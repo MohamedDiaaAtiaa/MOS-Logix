@@ -8,14 +8,9 @@
     'use strict';
 
     // Configuration
-    const API_KEY = 'AIzaSyC8TasdrtmEabXgg9KrI4cghfMrNfpCUJM';
-    // Use gemini-2.0-flash-exp if available, otherwise fallback to 1.5-flash
-    // User requested 2.5, trying to use best available model
+    // Configuration
+    // API Call is now proxied via /api/generate for security & limits.
     const MODEL_NAME = 'gemini-1.5-flash';
-    // Wait, user explicitly asked for gemini-2.5-flash in previous turn and I fixed it.
-    // I should stick to gemini-2.5-flash as requested.
-    // If it fails, I might need to fallback, but let's stick to user request.
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
 
     // Service Configuration
     const SERVICES = {
@@ -632,16 +627,21 @@
         prompt += `\nOutput ONLY raw HTML with embedded CSS/JS. No markdown.`;
 
         try {
-            // 3. Call API
-            const response = await fetch(API_URL, {
+            // 3. Call API via Backend Proxy (to enforce limits)
+            const response = await fetch('/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
+                body: JSON.stringify({ prompt: prompt })
             });
 
-            if (!response.ok) throw new Error(`API Error: ${response.status}`);
+            if (response.status === 429) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'This function is currently inactive due to limits');
+            }
+
+            if (!response.ok) {
+                throw new Error(`Server Error: ${response.status}`);
+            }
 
             const data = await response.json();
             if (!data.candidates || !data.candidates[0].content) throw new Error('No content generated');
@@ -654,8 +654,14 @@
 
         } catch (error) {
             console.error('Generation Error:', error);
-            ProgressLogger.add(`Error: ${error.message}`, 'error');
-            alert(`Error: ${error.message}`);
+            // Specific handling for limits
+            if (error.message.includes('inactive due to limits')) {
+                alert(error.message); // Show the specific message requested
+            } else {
+                ProgressLogger.add(`Error: ${error.message}`, 'error');
+                alert(`Error: ${error.message}`);
+            }
+
             // Return to builder
             els.loadingSection.style.display = 'none';
             els.builderWrapper.style.display = 'block';
