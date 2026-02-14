@@ -594,6 +594,23 @@
 
     // ─── Gemini API Generation ───────────────────────────────────────────────────
     async function generateWebsite() {
+        // 0. AUTH CHECK
+        const token = localStorage.getItem('user_token');
+        if (!token) {
+            if (window.openAuthModal) {
+                window.openAuthModal();
+                // Register callback to resume generation after login
+                window.onAuthSuccess = () => {
+                    generateWebsite();
+                    window.onAuthSuccess = null; // Clear callback
+                };
+                return;
+            } else {
+                alert("Please log in to generate a website.");
+                return;
+            }
+        }
+
         // 1. Show Gamified Loading
         els.builderWrapper.style.display = 'none';
         els.loadingSection.style.display = 'flex'; // Flex to center
@@ -630,7 +647,10 @@
             // 3. Call API via Backend Proxy (to enforce limits)
             const response = await fetch('/api/generate', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ prompt: prompt })
             });
 

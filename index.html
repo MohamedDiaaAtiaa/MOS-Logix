@@ -454,6 +454,167 @@
     </div>
   </footer>
 
+  <!-- Auth Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-content auth-modal">
+      <button class="modal-close" onclick="closeAuthModal()">&times;</button>
+      <h2 id="authTitle" style="font-family:'Orbitron'; color:var(--accent); text-align:center; margin-bottom:24px;">
+        Login</h2>
+
+      <form id="authForm" onsubmit="handleAuth(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="authEmail" required placeholder="Enter your email">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="authPassword" required placeholder="Enter password (min 6 chars)">
+        </div>
+        <button type="submit" class="cta-button" style="width:100%; justify-content:center;"
+          id="authSubmitBtn">Login</button>
+      </form>
+
+      <p style="text-align:center; margin-top:16px; font-size:14px; color:var(--text-secondary);">
+        <span id="authSwitchText">Don't have an account?</span>
+        <button onclick="toggleAuthMode()"
+          style="background:none; border:none; color:var(--accent); cursor:pointer; text-decoration:underline;">
+          <span id="authSwitchLink">Sign Up</span>
+        </button>
+      </p>
+      <div id="authError" style="color:#ef4444; font-size:12px; text-align:center; margin-top:12px; min-height:18px;">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Auth State
+    let currentUser = null;
+    let isLoginMode = true;
+
+    function checkUserSession() {
+      const token = localStorage.getItem('user_token');
+      const userStr = localStorage.getItem('user_data');
+      if (token && userStr) {
+        currentUser = JSON.parse(userStr);
+        updateNavAuth();
+      }
+    }
+
+    function updateNavAuth() {
+      const nav = document.querySelector('.nav-links');
+      const authBtn = document.getElementById('navAuthBtn');
+
+      if (currentUser) {
+        if (authBtn) authBtn.outerHTML = `<button onclick="logout()" class="nav-link" style="background:none; border:none; cursor:pointer;">Logout (${currentUser.email.split('@')[0]})</button>`;
+        else nav.innerHTML += `<button onclick="logout()" class="nav-link" style="background:none; border:none; cursor:pointer;">Logout (${currentUser.email.split('@')[0]})</button>`;
+      } else {
+        if (authBtn) authBtn.outerHTML = `<button onclick="openAuthModal()" class="nav-link" id="navAuthBtn" style="background:none; border:none; cursor:pointer; color:var(--accent);">Login / Sign Up</button>`;
+        else nav.innerHTML += `<button onclick="openAuthModal()" class="nav-link" id="navAuthBtn" style="background:none; border:none; cursor:pointer; color:var(--accent);">Login / Sign Up</button>`;
+      }
+    }
+
+    function openAuthModal() {
+      document.getElementById('authModal').classList.add('active');
+      isLoginMode = true;
+      updateAuthUI();
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+      document.getElementById('authError').textContent = '';
+    }
+
+    function toggleAuthMode() {
+      isLoginMode = !isLoginMode;
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const title = document.getElementById('authTitle');
+      const btn = document.getElementById('authSubmitBtn');
+      const switchText = document.getElementById('authSwitchText');
+      const switchLink = document.getElementById('authSwitchLink');
+
+      if (isLoginMode) {
+        title.textContent = 'Login';
+        btn.textContent = 'Login';
+        switchText.textContent = "Don't have an account?";
+        switchLink.textContent = 'Sign Up';
+      } else {
+        title.textContent = 'Sign Up';
+        btn.textContent = 'Create Account';
+        switchText.textContent = "Already have an account?";
+        switchLink.textContent = 'Login';
+      }
+      document.getElementById('authError').textContent = '';
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const btn = document.getElementById('authSubmitBtn');
+      const errorDiv = document.getElementById('authError');
+
+      if (password.length < 6) {
+        errorDiv.textContent = 'Password must be at least 6 characters';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      errorDiv.textContent = '';
+
+      try {
+        const res = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: isLoginMode ? 'login' : 'signup',
+            email,
+            password
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Authentication failed');
+
+        // Success
+        localStorage.setItem('user_token', data.token);
+        localStorage.setItem('user_data', JSON.stringify(data.user));
+        currentUser = data.user;
+
+        closeAuthModal();
+        updateNavAuth();
+
+        // If on tryit page or triggered by specific action, handle it?
+        // For now just general login.
+
+      } catch (err) {
+        errorDiv.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = isLoginMode ? 'Login' : 'Create Account';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_data');
+      currentUser = null;
+      // Restore Login Button
+      const nav = document.querySelector('.nav-links');
+      // Remove logout button, add login button... easiest to just call updateNavAuth() if it handles state correctly.
+      // But updateNavAuth appends or replaces.
+      // Let's reload to be clean or simpler DOM logic.
+      window.location.reload();
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', checkUserSession);
+  </script>
+
   <script type="module" src="/src/main.js"></script>
 </body>
 
