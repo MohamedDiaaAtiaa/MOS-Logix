@@ -740,17 +740,14 @@
     </div>
 
     <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
         // ─── Config ────────────────────────────────────────────────────────
-        const SUPABASE_URL = 'https://olmsjbunvfxhtwbpnntn.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9sbXNqYnVudmZ4aHR3YnBubnRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwNjc1NDksImV4cCI6MjA4NjY0MzU0OX0.6ycgQ1yNWLI9un69NQxC3iP7jyAsqEDlANiUp3CQi8M';
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const API_BASE = '/api/conversations';
 
         // ─── State ─────────────────────────────────────────────────────────
         let allConversations = [];
         let activeConversationId = null;
         let currentFilter = 'all';
+        let apiToken = sessionStorage.getItem('mos_admin_token');
 
         // ─── DOM ───────────────────────────────────────────────────────────
         const loginOverlay = document.getElementById('loginOverlay');
@@ -763,25 +760,50 @@
         const searchInput = document.getElementById('searchInput');
         const filterTabs = document.querySelectorAll('.filter-tab');
 
+        // Change input placeholder since we use Username now
+        document.getElementById('loginEmail').placeholder = "Username";
+        document.getElementById('loginEmail').type = "text";
+
         // ─── Auth ──────────────────────────────────────────────────────────
-        async function checkSession() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
+        function checkSession() {
+            if (apiToken) {
                 showDashboard();
+            } else {
+                loginOverlay.classList.remove('hidden');
             }
         }
 
         loginBtn.addEventListener('click', async () => {
-            const email = document.getElementById('loginEmail').value;
+            const username = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             loginError.style.display = 'none';
 
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                loginError.textContent = error.message;
+            if (username !== 'Admin') {
+                loginError.textContent = 'Invalid username';
                 loginError.style.display = 'block';
-            } else {
+                return;
+            }
+
+            // Test credentials with a quick API call
+            try {
+                const res = await fetch(API_BASE, {
+                    headers: { 'Authorization': `Bearer ${password}` }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    throw new Error('Invalid password');
+                }
+
+                if (!res.ok) throw new Error('Server error');
+
+                // Success
+                apiToken = password;
+                sessionStorage.setItem('mos_admin_token', apiToken);
                 showDashboard();
+
+            } catch (err) {
+                loginError.textContent = err.message;
+                loginError.style.display = 'block';
             }
         });
 
@@ -790,10 +812,12 @@
             if (e.key === 'Enter') loginBtn.click();
         });
 
-        logoutBtn.addEventListener('click', async () => {
-            await supabase.auth.signOut();
+        logoutBtn.addEventListener('click', () => {
+            apiToken = null;
+            sessionStorage.removeItem('mos_admin_token');
             adminLayout.style.display = 'none';
             loginOverlay.classList.remove('hidden');
+            document.getElementById('loginPassword').value = '';
         });
 
         function showDashboard() {
@@ -807,8 +831,17 @@
             conversationList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
 
             try {
-                const res = await fetch('/api/conversations');
+                const res = await fetch(API_BASE, {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    logoutBtn.click();
+                    return;
+                }
+
                 if (!res.ok) throw new Error('Failed to load');
+
                 const data = await res.json();
                 allConversations = data.conversations || [];
                 renderConversationList();
@@ -816,7 +849,7 @@
                 console.error(err);
                 conversationList.innerHTML = `
           <div class="empty-state" style="padding: 40px;">
-            <p style="color: var(--red);">Failed to load conversations. Make sure the API is deployed.</p>
+            <p style="color: var(--red);">Failed to load conversations. Check your connection.</p>
           </div>
         `;
             }
@@ -875,7 +908,15 @@
             chatPanel.classList.add('active');
 
             try {
-                const res = await fetch(`/api/conversations?id=${id}`);
+                const res = await fetch(`/api/conversations?id=${id}`, {
+                    headers: { 'Authorization': `Bearer ${apiToken}` }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    logoutBtn.click();
+                    return;
+                }
+
                 if (!res.ok) throw new Error('Failed to load');
                 const data = await res.json();
                 renderChat(data.conversation, data.messages);

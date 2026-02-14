@@ -28,6 +28,34 @@ export async function onRequest({ request }) {
 
 export async function onRequestGet({ request, env }) {
     try {
+        // 1. Auth Check (Custom Admin Credential)
+        const authHeader = request.headers.get('Authorization');
+        const token = authHeader ? authHeader.replace('Bearer ', '') : null;
+
+        if (!token) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: Missing credentials' }), {
+                status: 401,
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
+        // Verify password hash (SHA-256 of 'QwErAsDZx@2026')
+        // We use Web Crypto API which is available in Cloudflare Workers
+        const msgBuffer = new TextEncoder().encode(token);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Expected hash for 'QwErAsDZx@2026'
+        const EXPECTED_HASH = 'd1d5f5926de23ba5bbe8203a3b928e4159c3da740077b12dd831642bf4ba2fa4';
+
+        if (hashHex !== EXPECTED_HASH) {
+            return new Response(JSON.stringify({ error: 'Unauthorized: Invalid credentials' }), {
+                status: 403,
+                headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            });
+        }
+
         const url = new URL(request.url);
         const conversationId = url.searchParams.get('id');
 
