@@ -17,6 +17,7 @@ export default defineConfig({
                 quiz: resolve(__dirname, 'quiz.html'),
                 tryit: resolve(__dirname, 'tryit.html'),
                 auth: resolve(__dirname, 'auth.html'),
+                admin: resolve(__dirname, 'admin.html'),
             }
         }
     },
