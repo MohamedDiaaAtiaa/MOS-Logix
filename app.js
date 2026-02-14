@@ -328,47 +328,31 @@ function initContactForm() {
       btn.classList.add('loading');
     }
 
-    // Check for local file protocol
-    if (window.location.protocol === 'file:') {
-      console.error('Local Testing Detected');
-      if (window.showToast) {
-        window.showToast('Local Testing', 'API requires a server. Use "wrangler pages dev" for local testing.', 'error');
-      }
-      if (btn) {
-        btn.innerHTML = originalText;
-        btn.classList.remove('loading');
-      }
+    // Honeypot check
+    const honeypot = form.querySelector('input[name="bot_ref"]');
+    if (honeypot && honeypot.value) {
+      // Silently reject spam
+      if (btn) { btn.innerHTML = originalText; btn.classList.remove('loading'); }
       return;
     }
 
-    // Collect form data
+    // Collect form data for FormSubmit (AJAX mode — no redirect)
     const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    formData.append('_subject', '🚀 New Project Inquiry — MOS Logix');
+    formData.append('_captcha', 'false');
+    formData.append('_template', 'table');
 
     try {
-      const response = await fetch(`${window.location.origin}/api/contact`, {
+      const response = await fetch('https://formsubmit.co/ajax/info@moslogix.com', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+        body: formData
       });
 
-      let result;
-      const contentType = response.headers.get('content-type');
+      const result = await response.json();
 
-      if (contentType && contentType.includes('application/json')) {
-        result = await response.json();
-      } else {
-        // Handle unexpected HTML response (e.g. 405 error from Cloudflare)
-        const text = await response.text();
-        console.error('Non-JSON response received:', text);
-        throw new Error(`Server returned ${response.status} ${response.statusText}. Please check if the API is correctly deployed.`);
-      }
-
-      if (response.ok && result.success) {
+      if (result.success) {
         if (window.showToast) {
-          window.showToast('Message Sent', 'We have received your inquiry. Check your inbox soon!', 'success');
+          window.showToast('Message Sent', 'We have received your inquiry. We\'ll get back to you within 24 hours!', 'success');
         } else {
           alert('Message Sent!');
         }
@@ -385,12 +369,12 @@ function initContactForm() {
           }
         });
       } else {
-        throw new Error(result.error || 'Submission failed');
+        throw new Error(result.message || 'Submission failed');
       }
     } catch (error) {
       console.error('Submission Error:', error);
       if (window.showToast) {
-        window.showToast('Submission Failed', error.message, 'error');
+        window.showToast('Submission Failed', error.message || 'Something went wrong. Please try again.', 'error');
       } else {
         alert('Error: ' + error.message);
       }
