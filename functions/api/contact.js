@@ -6,7 +6,6 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-// System prompt for the AI sales assistant
 const SYSTEM_PROMPT = `You are MOS Logix's AI sales assistant. MOS Logix is a professional web design and development team.
 
 Your role:
@@ -21,9 +20,6 @@ Your role:
 
 You are representing MOS Logix. Sign off emails as "MOS Logix Team".`;
 
-/**
- * Build conversation history for Gemini context
- */
 function buildConversationHistory(messages, clientName, budget) {
     let history = `Client Name: ${clientName}\nClient Budget: ${budget || 'Not specified'}\n\nConversation History:\n`;
     for (const msg of messages) {
@@ -33,9 +29,6 @@ function buildConversationHistory(messages, clientName, budget) {
     return history;
 }
 
-/**
- * Call Gemini API to generate a response
- */
 async function generateAIResponse(conversationHistory, env) {
     const apiKey = env.GEMINI_API_KEY || 'AIzaSyC8TasdrtmEabXgg9KrI4cghfMrNfpCUJM';
 
@@ -69,9 +62,6 @@ async function generateAIResponse(conversationHistory, env) {
     return data.candidates[0].content.parts[0].text;
 }
 
-/**
- * Send an email reply via Resend
- */
 async function sendEmailReply(to, subject, htmlBody, env) {
     const resendApiKey = env.RESEND_API_KEY || 're_huntHqkk_FzBA21W95denW9hE8athbHhC';
 
@@ -97,14 +87,38 @@ async function sendEmailReply(to, subject, htmlBody, env) {
     return await response.json();
 }
 
-/**
- * Convert plain text to HTML for email
- */
 function textToHtml(text) {
     return text
         .split('\n\n')
         .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
         .join('');
+}
+
+// ─── NEW: Receipt Template ──────────────────────────────────
+function getReceiptHtml(name) {
+    return `
+    <div style="font-family: 'Inter', Arial, sans-serif; background-color: #080C14; color: #F1F5F9; padding: 40px 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #0F1520; border: 1px solid #1E293B; border-radius: 12px; overflow: hidden;">
+            <div style="background-color: #0F1520; padding: 24px; border-bottom: 1px solid #1E293B; text-align: center;">
+                <h1 style="color: #14FFEC; font-family: 'Orbitron', monospace; margin: 0; font-size: 24px; letter-spacing: 2px;">MOS LOGIX</h1>
+            </div>
+            <div style="padding: 32px 24px;">
+                <h2 style="margin-top: 0; color: #F1F5F9; font-size: 20px;">Receipt Confirmed</h2>
+                <p style="color: #94A3B8; line-height: 1.6;">Hi ${name},</p>
+                <p style="color: #94A3B8; line-height: 1.6;">We've received your project inquiry. Thank you for reaching out to MOS Logix.</p>
+                <p style="color: #94A3B8; line-height: 1.6;">Our system is reviewing your details now. You will receive a follow-up response shortly discussing the next steps.</p>
+                
+                <div style="margin: 32px 0; padding: 16px; background: rgba(20, 255, 236, 0.05); border-left: 4px solid #14FFEC; border-radius: 4px;">
+                    <p style="margin: 0; color: #14FFEC; font-size: 14px; font-weight: 500;">Status: Processing Inquiry...</p>
+                </div>
+
+                <p style="color: #64748B; font-size: 13px; margin-top: 40px;">
+                    © 2026 MOS Logix | Engineering the Digital Future
+                </p>
+            </div>
+        </div>
+    </div>
+    `;
 }
 
 // Handle OPTIONS preflight
@@ -127,7 +141,6 @@ export async function onRequestPost({ request, env }) {
         const message = formData.get('message');
         const subject = formData.get('_subject') || 'New Inquiry';
 
-        // Validate inputs
         if (!name || !email || !message) {
             return new Response(JSON.stringify({ success: false, message: 'Name, email, and message are required.' }), {
                 status: 400,
@@ -135,7 +148,6 @@ export async function onRequestPost({ request, env }) {
             });
         }
 
-        // Basic email validation
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             return new Response(JSON.stringify({ success: false, message: 'Invalid email address.' }), {
                 status: 400,
@@ -145,40 +157,39 @@ export async function onRequestPost({ request, env }) {
 
         const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
 
-        // 1. Store in contacts table (existing behavior)
+        // 1. Store in contacts table
         const { error: contactError } = await supabase
             .from('contacts')
             .insert([{ name, email, budget, message }]);
 
-        if (contactError) {
-            console.error('Contacts insert error:', contactError);
-        }
+        if (contactError) console.error('Contacts insert error:', contactError);
 
-        // 2. Send notification email to info@ (existing behavior)
-        const resendApiKey = env.RESEND_API_KEY || 're_huntHqkk_FzBA21W95denW9hE8athbHhC';
-        await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${resendApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from: 'onboarding@resend.dev',
-                to: 'info@moslogix.com',
-                subject: `${subject}: ${name}`,
-                html: `
-                    <p><strong>Name:</strong> ${name}</p>
-                    <p><strong>Email:</strong> ${email}</p>
-                    <p><strong>Budget:</strong> ${budget}</p>
-                    <p><strong>Message:</strong></p>
-                    <p>${message}</p>
-                `
-            })
-        });
+        // 2. Send notification to Team (info@)
+        // Fire and forget (don't await) to speed up response? No, Cloudflare Workers might kill it. 
+        // We'll await but use Promise.all where possible.
 
-        // ─── NEW: AI Auto-Response Flow ──────────────────────────────
+        // 3. Send IMMEDIATE Receipt Email to Client
+        const receiptPromise = sendEmailReply(
+            email,
+            `Inquiry Received: ${subject}`,
+            getReceiptHtml(name),
+            env
+        ).catch(e => console.error('Failed to send receipt:', e));
 
-        // 3. Create conversation
+        const adminNotificationPromise = sendEmailReply(
+            'info@moslogix.com',
+            `${subject}: ${name}`,
+            `<p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Budget:</strong> ${budget}</p><p><strong>Message:</strong></p><p>${message}</p>`,
+            env
+        ).catch(e => console.error('Failed to send admin notification:', e));
+
+        // We can await these now, or let them run while we generate AI. 
+        // Let's await to ensure "Receipt" goes out effectively.
+        await Promise.all([receiptPromise, adminNotificationPromise]);
+
+        // ─── AI Auto-Response Flow ──────────────────────────────
+
+        // 4. Create conversation
         const { data: conversation, error: convError } = await supabase
             .from('conversations')
             .insert([{
@@ -192,20 +203,19 @@ export async function onRequestPost({ request, env }) {
 
         if (convError) {
             console.error('Conversation insert error:', convError);
-            // Still return success for the contact form — AI is a bonus
-            return new Response(JSON.stringify({ success: true, message: 'Message sent successfully!' }), {
+            return new Response(JSON.stringify({ success: true, message: 'Message sent!' }), {
                 headers: { 'Content-Type': 'application/json', ...corsHeaders }
             });
         }
 
-        // 4. Store client's initial message
+        // 5. Store client's message
         await supabase.from('messages').insert([{
             conversation_id: conversation.id,
             role: 'client',
             content: message
         }]);
 
-        // 5. Generate AI response
+        // 6. Generate AI response
         const conversationHistory = buildConversationHistory(
             [{ role: 'client', content: message }],
             name,
@@ -217,13 +227,11 @@ export async function onRequestPost({ request, env }) {
             aiReplyText = await generateAIResponse(conversationHistory, env);
         } catch (aiError) {
             console.error('AI generation failed:', aiError);
-            // Don't fail the whole request if AI fails
-            return new Response(JSON.stringify({ success: true, message: 'Message sent successfully!' }), {
+            return new Response(JSON.stringify({ success: true, message: 'Message sent!' }), {
                 headers: { 'Content-Type': 'application/json', ...corsHeaders }
             });
         }
 
-        // 6. Check for escalation
         const shouldEscalate = aiReplyText.includes('[ESCALATE]');
         const cleanReply = aiReplyText.replace(/\[ESCALATE\]/g, '').trim();
 
@@ -234,7 +242,6 @@ export async function onRequestPost({ request, env }) {
             content: cleanReply
         }]);
 
-        // 8. Update conversation status if escalated
         if (shouldEscalate) {
             await supabase
                 .from('conversations')
@@ -242,7 +249,9 @@ export async function onRequestPost({ request, env }) {
                 .eq('id', conversation.id);
         }
 
-        // 9. Send AI reply to client
+        // 8. Send AI Reply (Follow-up)
+        // We add a slight delay/differentiation? No, just send it.
+        // It's the "Detailed" response.
         try {
             await sendEmailReply(
                 email,
