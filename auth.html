@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Auth Test | MOS Logix</title>
+    <link rel="stylesheet" href="/src/style.css">
+    <style>
+        body {
+            padding-top: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 1rem;
+            color: #aaa;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <h2 class="text-center mb-4">Auth Test</h2>
+        <input type="email" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="password123">
+
+        <button id="signUpBtn" class="btn btn-primary">Sign Up</button>
+        <button id="signInBtn" class="btn btn-secondary">Sign In</button>
+        <button id="signOutBtn" class="btn btn-secondary" style="border-color: #ff5f56; color: #ff5f56;">Sign
+            Out</button>
+
+        <div id="status">Status: Waiting...</div>
+
+        <hr style="border-color: #333; margin: 20px 0;">
+
+        <h3 class="h5">Test Data Fetch</h3>
+        <button id="fetchProfileBtn" class="btn btn-secondary">Fetch Profile</button>
+    </div>
+
+    <script type="module" src="/src/auth.js"></script>
+</body>
+
+</html>

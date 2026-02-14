@@ -336,23 +336,33 @@ function initContactForm() {
       return;
     }
 
-    // Collect form data for FormSubmit (AJAX mode — no redirect)
+    // Collect form data
     const formData = new FormData(form);
+    // Optional: Add metadata if needed by backend logic (though contact.js handles it)
     formData.append('_subject', '🚀 New Project Inquiry — MOS Logix');
-    formData.append('_captcha', 'false');
-    formData.append('_template', 'table');
 
     try {
-      const response = await fetch('/api/submit', {
+      // Attempt to submit to new Resend/Supabase endpoint
+      const response = await fetch('/api/contact', {
         method: 'POST',
         body: formData
       });
 
-      const result = await response.json();
+      let result;
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        result = await response.json();
+      } else {
+        throw new Error('Server returned non-JSON response');
+      }
+
+      if (!response.ok) {
+        throw new Error(result.message || `Server error: ${response.status}`);
+      }
 
       if (result.success) {
         if (window.showToast) {
-          window.showToast('Message Sent', 'We have received your inquiry. We\'ll get back to you within 24 hours!', 'success');
+          window.showToast('Message Sent', 'We have received your inquiry via our new system. We\'ll get back to you within 24 hours!', 'success');
         } else {
           alert('Message Sent!');
         }
@@ -371,10 +381,11 @@ function initContactForm() {
       } else {
         throw new Error(result.message || 'Submission failed');
       }
+
     } catch (error) {
       console.error('Submission Error:', error);
       if (window.showToast) {
-        window.showToast('Submission Failed', error.message || 'Something went wrong. Please try again.', 'error');
+        window.showToast('Submission Failed', error.message || 'Something went wrong. Please try again later.', 'error');
       } else {
         alert('Error: ' + error.message);
       }

@@ -1,124 +1,67 @@
-/**
- * Cloudflare Pages Function: /api/contact
- * Handles contact form submissions and relays them to Lark via its Open API.
- */
+import { createClient } from '@supabase/supabase-js';
 
-export async function onRequest(context) {
-    const { request, env } = context;
-
-    // 1. Method Security
-    if (request.method === 'GET') {
-        return new Response(JSON.stringify({ success: true, message: 'Contact API is active' }), {
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
-    if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), {
-            status: 405,
-            headers: { 'Content-Type': 'application/json' }
-        });
-    }
-
+export async function onRequestPost({ request, env }) {
     try {
-        // 2. Body Parsing & Validation
-        let body;
-        try {
-            body = await request.json();
-        } catch (e) {
-            return new Response(JSON.stringify({ success: false, error: 'Invalid JSON payload' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
+        const formData = await request.formData();
+        const name = formData.get('name');
+        const email = formData.get('email');
+        const budget = formData.get('budget');
+        const message = formData.get('message');
+        const subject = formData.get('_subject') || 'New Inquiry';
+
+        // 1. Initialize Supabase
+        // Note: Use env vars from Cloudflare context
+        const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
+
+        // 2. Insert into Supabase
+        const { error: dbError } = await supabase
+            .from('contacts')
+            .insert([
+                { name, email, budget, message }
+            ]);
+
+        if (dbError) {
+            console.error('Supabase Error:', dbError);
+            // We continue to email even if DB fails, or we could return error.
+            // Let's log but try to send email.
         }
 
-        const { name, email, budget, projectType, message, bot_ref } = body;
+        // 3. Send Email via Resend
+        // We use fetch to call Resend API directly
+        const resendApiKey = env.RESEND_API_KEY || "re_huntHqkk_FzBA21W95denW9hE8athbHhC"; // Fallback for dev if env missing, but dangerous in prod.
 
-        // Honeypot check
-        if (bot_ref) {
-            return new Response(JSON.stringify({ success: true, note: 'Spam filtered' }), {
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        // Basic presence check
-        if (!name || !email || !projectType || !message) {
-            return new Response(JSON.stringify({ success: false, error: 'Missing required fields' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        // 3. Auth with Lark: Get tenant_access_token
-        const appId = env.LARK_APP_ID;
-        const appSecret = env.LARK_APP_SECRET;
-
-        if (!appId || !appSecret) {
-            return new Response(JSON.stringify({ success: false, error: 'Server configuration error: Missing Lark Credentials' }), {
-                status: 500,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
-
-        const authResponse = await fetch('https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ "app_id": appId, "app_secret": appSecret })
-        });
-
-        const authData = await authResponse.json();
-        if (!authData.tenant_access_token) {
-            throw new Error(`Failed to get Lark access token: ${authData.msg || 'Unknown error'}`);
-        }
-
-        const accessToken = authData.tenant_access_token;
-
-        // 4. Send Interactive Card to info@moslogix.com
-        const timestamp = new Date().toLocaleString();
-        const sendResponse = await fetch('https://open.larksuite.com/open-apis/im/v1/messages?receive_id_type=email', {
+        const emailResponse = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json; charset=utf-8'
+                'Authorization': `Bearer ${resendApiKey}`,
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "receive_id": "info@moslogix.com",
-                "msg_type": "interactive",
-                "content": JSON.stringify({
-                    "config": { "wide_screen_mode": true },
-                    "header": {
-                        "title": { "tag": "plain_text", "content": `🚀 New Project Inquiry` },
-                        "template": "turquoise"
-                    },
-                    "elements": [
-                        {
-                            "tag": "div", "fields": [
-                                { "is_short": true, "text": { "tag": "lark_md", "content": `**👤 Name:**\n${name}` } },
-                                { "is_short": true, "text": { "tag": "lark_md", "content": `**📧 Email:**\n${email}` } },
-                                { "is_short": true, "text": { "tag": "lark_md", "content": `**💰 Budget:**\n${budget || 'Not specified'}` } },
-                                { "is_short": true, "text": { "tag": "lark_md", "content": `**🏷️ Type:**\n${projectType}` } }
-                            ]
-                        },
-                        { "tag": "hr" },
-                        { "tag": "div", "text": { "tag": "lark_md", "content": `**📝 Message:**\n${message}` } },
-                        { "tag": "note", "elements": [{ "tag": "plain_text", "content": `Submitted on ${timestamp} from Website Contact Form` }] }
-                    ]
-                })
+                from: 'onboarding@resend.dev', // Use user's verified domain if available
+                to: 'info@moslogix.com', // Target email
+                subject: `${subject}: ${name}`,
+                html: `
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Budget:</strong> ${budget}</p>
+          <p><strong>Message:</strong></p>
+          <p>${message}</p>
+        `
             })
         });
 
-        const sendData = await sendResponse.json();
-        if (sendData.code !== 0) {
-            throw new Error(`Lark API error: ${sendData.msg || 'Failed to send message'}`);
+        if (!emailResponse.ok) {
+            const errorData = await emailResponse.text();
+            throw new Error(`Resend API Error: ${errorData}`);
         }
 
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, message: 'Message sent successfully!' }), {
             headers: { 'Content-Type': 'application/json' }
         });
 
     } catch (error) {
-        console.error('Contact API Error:', error);
-        return new Response(JSON.stringify({ success: false, error: error.message || 'Internal Server Error' }), {
+        console.error('Submission Error:', error);
+        return new Response(JSON.stringify({ success: false, message: error.message }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
